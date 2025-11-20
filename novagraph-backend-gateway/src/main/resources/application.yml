@@ -1,0 +1,20 @@
+server:
+  port: 8110
+spring:
+  application:
+    name: novagraph-backend-gateway
+  main:
+    web-application-type: reactive
+  cloud:
+    nacos:
+      discovery:
+        server-addr: xxx.xxx.xxx.xxx:yyyy
+    gateway:
+      routes:
+        # 用户服务
+        - id: novagraph-backend-user-service
+          uri: lb://novagraph-backend-user-service
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - RewritePath=/api/user/(?<segment>.*), /$\{segment}

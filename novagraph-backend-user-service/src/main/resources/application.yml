@@ -1,0 +1,9 @@
+server:
+  port: 8121
+spring:
+  application:
+    name: novagraph-backend-user-service
+    cloud:
+      nacos:
+        discovery:
+          server-addr: xxx.xxx.xxx.xxx:yyyy
