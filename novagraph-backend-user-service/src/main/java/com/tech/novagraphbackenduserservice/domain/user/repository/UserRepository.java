@@ -1,7 +1,7 @@
 package com.tech.novagraphbackenduserservice.domain.user.repository;
 
-import generator.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tech.novagraphbackendmodel.user.entity.User;
 
 /**
 * @author Remon

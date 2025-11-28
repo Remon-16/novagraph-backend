@@ -1,7 +1,7 @@
 package com.tech.novagraphbackenduserservice.infrastructure.repository;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import generator.domain.User;
+import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserRepository;
 import com.tech.novagraphbackenduserservice.infrastructure.mapper.UserMapper;
 import org.springframework.stereotype.Service;
