@@ -28,4 +28,9 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     public User getLoginUser(HttpServletRequest request) {
         return userDomainService.getLoginUser(request);
     }
+
+    @Override
+    public LoginUserVO getLoginUserVO(HttpServletRequest request) {
+        return userDomainService.getLoginUserVO(request);
+    }
 }

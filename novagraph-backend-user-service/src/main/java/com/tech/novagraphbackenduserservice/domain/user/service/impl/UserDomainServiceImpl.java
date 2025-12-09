@@ -102,6 +102,12 @@ public class UserDomainServiceImpl implements UserDomainService {
         return currentUser;
     }
 
+    @Override
+    public LoginUserVO getLoginUserVO(HttpServletRequest request) {
+        User currentUser = getUserFromRequest(request);
+        return this.getLoginUserVO(currentUser);
+    }
+
     private LoginUserVO getLoginUserVO(User user) {
         if (user == null) {
             return null;

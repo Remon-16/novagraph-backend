@@ -27,6 +27,13 @@ public interface UserDomainService {
     LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
 
     /**
+     * 获取登录用户信息
+     * @param request
+     * @return
+     */
+    LoginUserVO getLoginUserVO(HttpServletRequest request);
+
+    /**
      * 获取当前登录用户
      *
      * @param request

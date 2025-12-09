@@ -33,4 +33,11 @@ public interface UserApplicationService {
      * @return
      */
     User getLoginUser(HttpServletRequest request);
+
+    /**
+     * 获取登录用户信息
+     * @param request
+     * @return
+     */
+    LoginUserVO getLoginUserVO(HttpServletRequest request);
 }
