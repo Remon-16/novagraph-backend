@@ -23,6 +23,7 @@
 	</scm>
 	<modules>
 		<module>novagraph-backend-user-service</module>
+		<module>novagraph-backend-graph-service</module>
 		<module>novagraph-backend-gateway</module>
 		<module>novagraph-backend-common</module>
 		<module>novagraph-backend-model</module>

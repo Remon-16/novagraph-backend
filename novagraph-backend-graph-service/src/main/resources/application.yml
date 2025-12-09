@@ -1,0 +1,7 @@
+spring:
+  application:
+   name: novagraph-backend-graph-service
+
+novagraph:
+  upload:
+    file-size: 5
