@@ -1,4 +1,4 @@
-package com.tech.novagraphbackendmodel.dto.picture;
+package com.tech.novagraphbackendmodel.dto.graph;
 
 import lombok.Data;
 

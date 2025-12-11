@@ -21,8 +21,8 @@ create table if not exists user
     isDelete     tinyint      default 0                 not null comment '是否删除',
     UNIQUE KEY uk_userAccount (userAccount),
     UNIQUE KEY uk_roomCode (roomCode),
-    INDEX idx_userName (userName),
-    INDEX idx_roomCode (roomCode)
+    INDEX idx_userName (userName),        -- 提升基于用户名的查询性能
+    INDEX idx_roomCode (roomCode)         -- 提升基于用户房间号的查询性能
 ) comment '用户' collate = utf8mb4_unicode_ci;
 
 -- 图片表
@@ -49,3 +49,42 @@ create table if not exists picture
     INDEX idx_tags (tags),                 -- 提升基于标签的查询性能
     INDEX idx_userId (userId)              -- 提升基于用户 ID 的查询性能
 ) comment '图片' collate = utf8mb4_unicode_ci;
+
+-- 剧本表
+create table if not exists screenplay
+(
+    id           bigint auto_increment comment 'id' primary key,
+    name         varchar(256)                           null comment '剧本名称',
+    introduction varchar(512)                           null comment '简介',
+    category     varchar(64)                            null comment '分类',
+    tags         varchar(512)                           null comment '标签（JSON 数组）',
+    cover        varchar(1024)                          null comment '剧本封面链接',
+    plotTree     longtext                               null comment '剧情树的JSON字符串',
+    userId       bigint                                 not null comment '用户 id',
+    editTime     datetime     default CURRENT_TIMESTAMP not null comment '编辑时间',
+    createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete     tinyint      default 0                 not null comment '是否删除',
+
+    INDEX idx_screenplayName (name),       -- 提升基于剧本名称的查询性能
+    INDEX idx_category (category),         -- 提升基于分类的查询性能
+    INDEX idx_tags (tags),                 -- 提升基于标签的查询性能
+    INDEX idx_userId (userId)              -- 提升基于用户 ID 的查询性能
+) comment '剧本表' collate = utf8mb4_unicode_ci;
+
+-- 剧本-章节
+create table if not exists screenplay_section
+(
+    id           bigint auto_increment comment 'id' primary key,
+    sectionName  varchar(256)                           null comment '章节名称',
+    content      longtext                               not null comment '内容',
+    screenplayId bigint                                 not null comment '剧本Id',
+    userId       bigint                                 not null comment '用户 id',
+    editTime     datetime     default CURRENT_TIMESTAMP not null comment '编辑时间',
+    createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete     tinyint      default 0                 not null comment '是否删除',
+
+    INDEX idx_sectionName (sectionName),    -- 提升基于剧情章节的查询性能
+    INDEX idx_userId (userId)               -- 提升基于用户 ID 的查询性能
+) comment '剧本章节' collate = utf8mb4_unicode_ci;

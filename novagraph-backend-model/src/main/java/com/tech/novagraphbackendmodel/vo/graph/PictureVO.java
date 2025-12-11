@@ -1,4 +1,4 @@
-package com.tech.novagraphbackendmodel.vo.picture;
+package com.tech.novagraphbackendmodel.vo.graph;
 
 import cn.hutool.json.JSONUtil;
 import com.tech.novagraphbackendmodel.graph.entity.Picture;
@@ -71,11 +71,6 @@ public class PictureVO {
      * 用户 id
      */
     private Long userId;
-
-    /**
-     * 空间 id
-     */
-    private Long spaceId;
 
     /**
      * 创建时间

@@ -1,6 +1,5 @@
 package com.tech.novagraphbackendgraphservice.domain.picture.service.impl;
 
-import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
@@ -9,10 +8,10 @@ import com.tech.novagraphbackendgraphservice.domain.picture.service.PictureDomai
 import com.tech.novagraphbackendgraphservice.infrastructure.manager.upload.FilePictureUpload;
 import com.tech.novagraphbackendgraphservice.infrastructure.manager.upload.PictureUploadTemplate;
 import com.tech.novagraphbackendgraphservice.infrastructure.manager.upload.UrlPictureUpload;
-import com.tech.novagraphbackendmodel.dto.picture.PictureUploadRequest;
+import com.tech.novagraphbackendmodel.dto.graph.PictureUploadRequest;
 import com.tech.novagraphbackendmodel.graph.entity.Picture;
 import com.tech.novagraphbackendmodel.user.entity.User;
-import com.tech.novagraphbackendmodel.vo.picture.PictureVO;
+import com.tech.novagraphbackendmodel.vo.graph.PictureVO;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +44,7 @@ public class PictureDomainServiceImpl implements PictureDomainService {
             ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
         }
         // 上传图片，得到图片信息
-        // 按照用户 id 划分目录 => 按照空间划分目录
+        // 按照用户 id 划分目录
         String uploadPathPrefix = String.format("NovaGraph/%s", loginUser.getId());;
         // 根据 inputSource 的类型区分上传方式
         PictureUploadTemplate pictureUploadTemplate = filePictureUpload;

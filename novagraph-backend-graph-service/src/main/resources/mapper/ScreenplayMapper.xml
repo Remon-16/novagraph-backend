@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayMapper">
+
+    <resultMap id="BaseResultMap" type="com.tech.novagraphbackendmodel.graph.entity.Screenplay">
+            <id property="id" column="id" />
+            <result property="name" column="name" />
+            <result property="introduction" column="introduction" />
+            <result property="category" column="category" />
+            <result property="tags" column="tags" />
+            <result property="cover" column="cover" />
+            <result property="plotTree" column="plotTree" />
+            <result property="userId" column="userId" />
+            <result property="editTime" column="editTime" />
+            <result property="createTime" column="createTime" />
+            <result property="updateTime" column="updateTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,introduction,category,tags,cover,
+        plotTree,userId,editTime,createTime,updateTime,
+        isDelete
+    </sql>
+</mapper>

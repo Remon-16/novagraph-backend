@@ -1,8 +1,8 @@
 package com.tech.novagraphbackendgraphservice.domain.picture.service;
 
-import com.tech.novagraphbackendmodel.dto.picture.PictureUploadRequest;
+import com.tech.novagraphbackendmodel.dto.graph.PictureUploadRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
-import com.tech.novagraphbackendmodel.vo.picture.PictureVO;
+import com.tech.novagraphbackendmodel.vo.graph.PictureVO;
 
 public interface PictureDomainService {
 
