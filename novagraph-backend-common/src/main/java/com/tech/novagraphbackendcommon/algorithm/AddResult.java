@@ -1,4 +1,4 @@
-package com.tech.novagraphbackendgraphservice.infrastructure.algorithm;
+package com.tech.novagraphbackendcommon.algorithm;
 
 import lombok.Data;
 
