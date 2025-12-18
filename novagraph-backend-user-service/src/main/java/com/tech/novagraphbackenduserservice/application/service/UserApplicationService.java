@@ -4,6 +4,9 @@ import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
+import java.util.Set;
+
 public interface UserApplicationService {
 
     /**
@@ -40,4 +43,6 @@ public interface UserApplicationService {
      * @return
      */
     LoginUserVO getLoginUserVO(HttpServletRequest request);
+
+    List<User> listByIds(Set<Long> userIdSet);
 }

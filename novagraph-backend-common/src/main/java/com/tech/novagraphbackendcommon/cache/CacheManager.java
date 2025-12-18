@@ -9,6 +9,7 @@ import com.tech.novagraphbackendcommon.algorithm.TopK;
 import com.tech.novagraphbackendcommon.common.SortedCacheResult;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
+import com.tech.novagraphbackendcommon.utils.CacheUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +27,7 @@ import java.util.stream.Collectors;
 @Component
 @ConditionalOnBean(RedisConnectionFactory.class)
 public class CacheManager {
-    /**
-     * 应用名称
-     */
-    @Getter
-    @Setter
-    private String appName = "novagraph";
+
     /**
      * 初始容量
      */
@@ -115,7 +111,7 @@ public class CacheManager {
      * 拼接 redis 的 Key 用于分布式 Redis 区分不同服务
      */
     private String buildRedisKey(String key){
-        return appName + ":" + key;
+        return CacheUtils.APP_NAME + ":" + key;
     }
 
     // 辅助方法：构造复合 key

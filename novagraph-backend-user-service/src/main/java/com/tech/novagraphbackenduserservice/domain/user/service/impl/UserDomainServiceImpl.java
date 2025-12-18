@@ -19,7 +19,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.crypto.SecretKey;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -106,6 +108,11 @@ public class UserDomainServiceImpl implements UserDomainService {
     public LoginUserVO getLoginUserVO(HttpServletRequest request) {
         User currentUser = getUserFromRequest(request);
         return this.getLoginUserVO(currentUser);
+    }
+
+    @Override
+    public List<User> listByIds(Set<Long> userIdSet) {
+        return userRepository.listByIds(userIdSet);
     }
 
     private LoginUserVO getLoginUserVO(User user) {

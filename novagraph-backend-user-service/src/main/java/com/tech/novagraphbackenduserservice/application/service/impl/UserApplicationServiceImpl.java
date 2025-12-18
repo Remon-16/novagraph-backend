@@ -8,6 +8,9 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Set;
+
 @Service
 public class UserApplicationServiceImpl implements UserApplicationService {
 
@@ -32,5 +35,10 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     @Override
     public LoginUserVO getLoginUserVO(HttpServletRequest request) {
         return userDomainService.getLoginUserVO(request);
+    }
+
+    @Override
+    public List<User> listByIds(Set<Long> userIdSet) {
+        return userDomainService.listByIds(userIdSet);
     }
 }
