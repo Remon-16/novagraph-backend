@@ -75,7 +75,7 @@ create table if not exists screenplay
 -- 剧本-章节
 create table if not exists screenplay_section
 (
-    id           bigint auto_increment comment 'id' primary key,
+    id           bigint auto_increment comment 'id'     primary key,
     sectionName  varchar(256)                           null comment '章节名称',
     content      longtext                               not null comment '内容',
     screenplayId bigint                                 not null comment '剧本Id',
@@ -88,3 +88,40 @@ create table if not exists screenplay_section
     INDEX idx_sectionName (sectionName),    -- 提升基于剧情章节的查询性能
     INDEX idx_userId (userId)               -- 提升基于用户 ID 的查询性能
 ) comment '剧本章节' collate = utf8mb4_unicode_ci;
+
+-- 剧本表添加点赞数量字段
+
+-- 添加新列
+ALTER TABLE screenplay
+    ADD COLUMN thumbCount  bigint  null DEFAULT 0 comment '点赞数量';
+
+-- 剧本点赞记录表
+create table if not exists screenplay_thumb
+(
+    id           bigint auto_increment                  primary key,
+    userId       bigint                                 not null comment '用户ID',
+    screenplayId bigint                                 not null comment '剧本ID',
+    createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间'
+)comment '剧本点赞记录表' collate = utf8mb4_unicode_ci;
+create unique index idx_userId_screenplayId
+    on screenplay_thumb (userId, screenplayId);
+
+-- 剧本评论表
+create table if not exists screenplay_comment(
+    id           bigint auto_increment primary key,
+    userId       bigint                                 not null comment '用户 id',
+    screenplayId bigint                                 not null comment '图片 id',
+    targetId     bigint                                 null comment '目标 id 为空代表是直接评论在剧本上，不为空说明是多级评论',
+    secondTargetId bigint                               null comment '二级目标评论Id',
+    content      varchar(2048)                          not null comment '评论内容',
+    createTime   datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    editTime     datetime default CURRENT_TIMESTAMP not null comment '编辑时间',
+    updateTime   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete     tinyint  default 0                 not null comment '是否删除',
+
+    INDEX idx_userId (userId),       -- 提升基于用户的查询效率
+    INDEX idx_screenplayId_target (screenplayId, targetId), -- 优化直接评论查询
+    INDEX idx_target_time (targetId, createTime), -- 优化子评论查询
+    INDEX idx_screenplayId (screenplayId)       -- 提升基于用户的查询效率
+)comment '剧本评论表' collate = utf8mb4_unicode_ci;
+

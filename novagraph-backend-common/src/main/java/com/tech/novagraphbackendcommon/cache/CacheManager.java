@@ -174,7 +174,7 @@ public class CacheManager {
                 value, redisCacheExpireTime, TimeUnit.SECONDS);
     }
 
-    public void putIfPresent(String hashKey, String key, Integer value) {
+    public void putIfPresentLocalHash(String hashKey, String key, Integer value) {
         String compositeKey = buildCacheKey(hashKey, key);
         Object object = localCache.getIfPresent(compositeKey);
         if (object == null) {
@@ -426,6 +426,15 @@ public class CacheManager {
         // 3. 查 Redis
         objIdThumbCountMap.putAll(getThumbCountRedis(missKeys, head));
         return objIdThumbCountMap;
+    }
+
+    public void putThumbCountIfPresentLocal(String key, Integer count) {
+        Object object = localCache.getIfPresent(key);
+        if (object == null) {
+            return;
+        }
+        Integer oldValue = (Integer) object;
+        localCache.put(key, oldValue + count);
     }
 
 }

@@ -21,6 +21,7 @@ import com.tech.novagraphbackendgraphservice.infrastructure.manager.upload.UrlPi
 import com.tech.novagraphbackendgraphservice.infrastructure.mapper.PictureMapper;
 import com.tech.novagraphbackendmodel.dto.graph.PictureQueryRequest;
 import com.tech.novagraphbackendmodel.dto.graph.PictureUploadRequest;
+import com.tech.novagraphbackendmodel.graph.constant.PictureCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.Picture;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.graph.PictureVO;
@@ -141,7 +142,7 @@ public class PictureDomainServiceImpl extends ServiceImpl<PictureMapper, Picture
                         Page<Picture> picturePage = page(new Page<>(current, size),
                                 getQueryWrapper(pictureQueryRequest));
                         pictureVOPage = getPictureVOPage(picturePage);
-                        String queryKey = CacheUtils.getPictureQueryCacheKey(pictureQueryRequest);
+                        String queryKey = PictureCacheConstant.getPictureQueryCacheKey(pictureQueryRequest);
                         // 2.2 写入 Redis
                         String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
                         cacheManager.putValueToCache(queryKey, cacheValue);
@@ -162,7 +163,7 @@ public class PictureDomainServiceImpl extends ServiceImpl<PictureMapper, Picture
 
     private Page<PictureVO> queryCachePage(PictureQueryRequest pictureQueryRequest, HttpServletRequest request){
         // 1 先从缓存中查图片的数据
-        String queryKey = CacheUtils.getPictureQueryCacheKey(pictureQueryRequest);
+        String queryKey = PictureCacheConstant.getPictureQueryCacheKey(pictureQueryRequest);
         Object queryValue = cacheManager.getValueCache(queryKey);
         if(queryValue == null){
             return null;
