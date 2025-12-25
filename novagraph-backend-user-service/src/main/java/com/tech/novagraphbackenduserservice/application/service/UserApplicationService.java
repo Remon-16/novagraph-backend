@@ -44,5 +44,7 @@ public interface UserApplicationService {
      */
     LoginUserVO getLoginUserVO(HttpServletRequest request);
 
+    User getUserById(long id);
+
     List<User> listByIds(Set<Long> userIdSet);
 }

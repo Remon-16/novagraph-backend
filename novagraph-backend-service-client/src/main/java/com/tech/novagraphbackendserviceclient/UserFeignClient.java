@@ -9,13 +9,23 @@ import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Set;
 
 @FeignClient(name = "novagraph-backend-user-service", path = "/api/user/inner")
 public interface UserFeignClient {
+
+    /**
+     * 根据 id 获取用户
+     * @param userId
+     * @return
+     */
+    @GetMapping("/get/id")
+    User getUserById(@RequestParam("userId") long userId);
 
     /**
      * 根据 id 获取用户列表

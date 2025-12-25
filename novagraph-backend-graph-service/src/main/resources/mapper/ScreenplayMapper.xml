@@ -12,6 +12,7 @@
             <result property="tags" column="tags" />
             <result property="cover" column="cover" />
             <result property="plotTree" column="plotTree" />
+            <result property="thumbCount" column="thumbCount" />
             <result property="userId" column="userId" />
             <result property="editTime" column="editTime" />
             <result property="createTime" column="createTime" />
@@ -21,7 +22,20 @@
 
     <sql id="Base_Column_List">
         id,name,introduction,category,tags,cover,
-        plotTree,userId,editTime,createTime,updateTime,
+        plotTree,thumbCount,userId,editTime,createTime,updateTime,
         isDelete
     </sql>
+
+    <update id="batchUpdateThumbCount">
+        UPDATE screenplay
+        SET thumbCount = thumbCount + CASE id
+        <foreach collection="countMap.entrySet()" item="value" index="key">
+            WHEN #{key} THEN #{value}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="countMap.keySet()" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

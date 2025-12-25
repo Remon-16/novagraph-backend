@@ -16,14 +16,37 @@ public class ScreenplayCacheConstant {
     public static final String TEMP_THUMB_KEY_PREFIX = "sp:thumb:temp:";
 
     /**
-     * 图片点赞数量记录 screenplayId:count
+     * 剧本点赞数量记录 screenplayId:count
      */
     public static final String THUMB_KEY_SCREENPLAY_PREFIX = "thumb:screenplay:";
 
     /**
      * 剧本缓存
      */
-    public static final String Screenplay_CACHE_PREFIX = "ngsp:";
+    public static final String SCREENPLAY_CACHE_PREFIX = "ngsp:";
+
+    /**
+     * 剧本评论缓存
+     */
+    public static final String SCREENPLAY_COMMENT_CACHE_PREFIX = "ngsp:cmt:";
+
+    /**
+     * 剧本评论 zSet缓存名称：ngsp:comment:sorted:(desc/asc):SCREENPLAYId
+     */
+    public static final String SCREENPLAY_COMMENT_SORTED_CACHE_PREFIX = "ngsp:cmt:sorted";
+    /**
+     * 剧本评论 评论总数缓存名称 ngsp:comment:sorted:total:SCREENPLAYId
+     */
+    public static final String SCREENPLAY_COMMENT_SORTED_TOTAL_CACHE_PREFIX = "ngsp:cmt:sorted:total";
+    /**
+     * 剧本二级评论 zSet缓存名称 comment:second:sorted:(desc/asc):commentId
+     */
+    public static final String SCREENPLAY_SECOND_COMMENT_SORTED_CACHE_PREFIX = "ngsp:cmt:sc:sorted";
+    /**
+     * 剧本二级评论 总数缓存名称 comment:second:sorted:total:commentId
+     */
+    public static final String SCREENPLAY_SECOND_COMMENT_SORTED_TOTAL_CACHE_PREFIX = "ngsp:cmt:sc:sorted:total";
+
 
     public static String getUserThumbKey(Long userId) {
         return USER_SCREENPLAY_THUMB_KEY_PREFIX + userId.toString();
@@ -37,10 +60,30 @@ public class ScreenplayCacheConstant {
     }
 
     /**
-     * 图片点赞数量记录 pictureId:count
+     * 剧本点赞数量记录 screenplayId:count
      */
-    public static String getPictureThumbKey(Long pictureId){
-        return THUMB_KEY_SCREENPLAY_PREFIX + pictureId.toString();
+    public static String getScreenplayThumbKey(Long screenplayId){
+        return THUMB_KEY_SCREENPLAY_PREFIX + screenplayId.toString();
+    }
+
+    public static String getScreenplaySortedCommentCacheKey(String order, Long screenplayId){
+        return SCREENPLAY_COMMENT_SORTED_CACHE_PREFIX + order + ":" + screenplayId;
+    }
+
+    public static String getScreenplaySecondCommentSortedCache(String order, Long commentId){
+        return SCREENPLAY_SECOND_COMMENT_SORTED_CACHE_PREFIX + order + ":" + commentId;
+    }
+
+    public static String getScreenplayCommentCacheKey(String commentId){
+        return SCREENPLAY_COMMENT_CACHE_PREFIX + commentId;
+    }
+
+    public static String getScreenplayCommentSortedTotalCache(Long screenplayId){
+        return SCREENPLAY_COMMENT_SORTED_TOTAL_CACHE_PREFIX + ":" + screenplayId;
+    }
+
+    public static String getScreenplaySecondCommentSortedTotalCache(Long commentId){
+        return SCREENPLAY_SECOND_COMMENT_SORTED_TOTAL_CACHE_PREFIX + ":" + commentId;
     }
 
     /**
@@ -51,6 +94,8 @@ public class ScreenplayCacheConstant {
     }
 
     public static String getScreenplayCacheKey(String key){
-        return Screenplay_CACHE_PREFIX + key;
+        return SCREENPLAY_CACHE_PREFIX + key;
     }
+
+
 }

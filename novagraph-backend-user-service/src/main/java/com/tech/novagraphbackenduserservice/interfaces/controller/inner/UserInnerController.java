@@ -6,10 +6,7 @@ import com.tech.novagraphbackendmodel.vo.user.UserListVO;
 import com.tech.novagraphbackendserviceclient.UserFeignClient;
 import com.tech.novagraphbackenduserservice.application.service.UserApplicationService;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
@@ -20,6 +17,12 @@ public class UserInnerController implements UserFeignClient {
 
     @Resource
     private UserApplicationService userApplicationService;
+
+    @Override
+    @GetMapping("/get/id")
+    public User getUserById(long userId) {
+        return userApplicationService.getUserById(userId);
+    }
 
     @Override
     @PostMapping("/post/ids")

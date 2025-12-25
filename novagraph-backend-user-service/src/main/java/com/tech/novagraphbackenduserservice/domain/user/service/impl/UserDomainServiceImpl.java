@@ -2,6 +2,7 @@ package com.tech.novagraphbackenduserservice.domain.user.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
@@ -11,6 +12,7 @@ import com.tech.novagraphbackendmodel.user.valueobject.UserRoleEnum;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserRepository;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserDomainService;
+import com.tech.novagraphbackenduserservice.infrastructure.mapper.UserMapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +27,8 @@ import java.util.Set;
 
 @Slf4j
 @Service
-public class UserDomainServiceImpl implements UserDomainService {
+public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
+        implements UserDomainService {
 
     @Resource
     private UserRepository userRepository;

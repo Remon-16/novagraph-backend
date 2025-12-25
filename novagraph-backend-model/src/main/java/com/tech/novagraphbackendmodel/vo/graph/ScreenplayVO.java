@@ -44,6 +44,11 @@ public class ScreenplayVO {
     private String plotTree;
 
     /**
+     * 点赞数量
+     */
+    private Long thumbCount;
+
+    /**
      * 用户 id
      */
     private Long userId;

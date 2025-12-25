@@ -1,5 +1,6 @@
 package com.tech.novagraphbackenduserservice.domain.user.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,7 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Set;
 
-public interface UserDomainService {
+public interface UserDomainService extends IService<User> {
 
     /**
      * 用户注册

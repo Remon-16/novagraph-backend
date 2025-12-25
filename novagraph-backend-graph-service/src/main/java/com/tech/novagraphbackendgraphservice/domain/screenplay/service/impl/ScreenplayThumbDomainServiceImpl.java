@@ -1,13 +1,16 @@
 package com.tech.novagraphbackendgraphservice.domain.screenplay.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tech.novagraphbackendcommon.cache.CacheManager;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.utils.CacheUtils;
 import com.tech.novagraphbackendgraphservice.domain.screenplay.service.ScreenplayThumbDomainService;
+import com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayThumbMapper;
 import com.tech.novagraphbackendmodel.dto.graph.DoThumbRequest;
 import com.tech.novagraphbackendmodel.graph.constant.RedisLuaScriptConstant;
 import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
+import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
 import com.tech.novagraphbackendmodel.graph.valueobject.LuaStatusEnum;
 import com.tech.novagraphbackendmodel.graph.valueobject.ThumbTypeEnum;
 import com.tech.novagraphbackendmodel.user.entity.User;
@@ -21,7 +24,8 @@ import java.util.List;
 
 
 @Service
-public class ScreenplayThumbDomainServiceImpl implements ScreenplayThumbDomainService {
+public class ScreenplayThumbDomainServiceImpl extends ServiceImpl<ScreenplayThumbMapper, ScreenplayThumb>
+        implements ScreenplayThumbDomainService {
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;

@@ -1,5 +1,7 @@
 package com.tech.novagraphbackenduserservice.application.service.impl;
 
+import com.tech.novagraphbackendcommon.exception.ErrorCode;
+import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
 import com.tech.novagraphbackenduserservice.application.service.UserApplicationService;
@@ -40,5 +42,14 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     @Override
     public List<User> listByIds(Set<Long> userIdSet) {
         return userDomainService.listByIds(userIdSet);
+    }
+
+    @Override
+    public User getUserById(long id) {
+        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+        User user = userDomainService.getById(id);
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
+        user.setUserPassword("");
+        return user;
     }
 }
