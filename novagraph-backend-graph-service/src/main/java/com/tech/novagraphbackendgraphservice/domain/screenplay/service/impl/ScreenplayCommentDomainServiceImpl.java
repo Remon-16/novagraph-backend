@@ -3,10 +3,12 @@ package com.tech.novagraphbackendgraphservice.domain.screenplay.service.impl;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tech.novagraphbackendcommon.cache.CacheManager;
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendcommon.common.SortedCacheResult;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
@@ -26,6 +28,7 @@ import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import com.tech.novagraphbackendserviceclient.UserFeignClient;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -41,6 +44,9 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
 
     @Resource
     private UserFeignClient userFeignClient;
+
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     private final Map<String, Object> lockMap = new ConcurrentHashMap<>();
 
@@ -142,8 +148,79 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
         return super.getById(ScreenplayCommentId);
     }
 
+    @Override
+    public void canalHandleScreenplayComment(List<CanalHandleVO> canalHandleVOList) {
+        canalHandleVOList.forEach(canalHandleVO -> {
+            CanalEntry.EventType eventType = canalHandleVO.getEventType();
+            ScreenplayComment screenplayComment = JSONUtil.toBean(canalHandleVO.getJsonDataStr(), ScreenplayComment.class);
+            if (eventType == CanalEntry.EventType.DELETE || cacheManager.getEntry_DELETE_FLAG().equals(screenplayComment.getIsDelete())) {
+                canalDeleteHandle(canalHandleVO);
+            }else if (eventType == CanalEntry.EventType.UPDATE) {
+                canalUpdateHandle(canalHandleVO);
+            }else {
+                canalInsertHandle(canalHandleVO);
+            }
+        });
+    }
+
+    private void canalInsertHandle(CanalHandleVO canalHandleVO){
+        ScreenplayComment screenplayComment = JSONUtil.toBean(canalHandleVO.getJsonDataStr(), ScreenplayComment.class);
+        String ascSortedKey = getSortedKey(CacheUtils.ASC, screenplayComment.getScreenplayId(), screenplayComment.getTargetId());
+        String descSortedKey = getSortedKey(CacheUtils.DESC, screenplayComment.getScreenplayId(), screenplayComment.getTargetId());
+        String totalKey = getSortedTotalKey(screenplayComment.getScreenplayId(), screenplayComment.getTargetId());
+
+        // 更新缓存
+        Double score = (double) screenplayComment.getCreateTime().getTime();
+        String valueKey = ScreenplayCacheConstant.getScreenplayCommentCacheKey(screenplayComment.getId().toString());
+        List<ScreenplayComment> screenplayCommentList = new ArrayList<>();
+        screenplayCommentList.add(screenplayComment);
+        List<ScreenplayCommentVo> screenplayCommentVoList = this.getScreenplayCommentVo(screenplayCommentList);
+        String valueStr = JSONUtil.toJsonStr(screenplayCommentVoList.getFirst());
+        // 更新 total
+        Long total = cacheManager.getTotal(totalKey);
+        if(total == null){
+            return;
+        }
+
+        cacheManager.putValueToCache(totalKey, total + 1, cacheManager.getRedisZSetExpireTime());
+        cacheManager.insertSortedValue(ascSortedKey, screenplayComment.getId(), score, valueKey, valueStr);
+        cacheManager.insertSortedValue(descSortedKey, screenplayComment.getId(), score, valueKey, valueStr);
+    }
+
+    private void canalUpdateHandle(CanalHandleVO canalHandleVO){
+        ScreenplayComment screenplayComment = JSONUtil.toBean(canalHandleVO.getJsonDataStr(), ScreenplayComment.class);
+        String valueKey = ScreenplayCacheConstant.getScreenplayCommentCacheKey(screenplayComment.getId().toString());
+        if(!redisTemplate.hasKey(ScreenplayCacheConstant.buildRedisKey(valueKey))){
+            return;
+        }
+        Object Value = cacheManager.getValueCache(valueKey);
+        ScreenplayCommentVo screenplayCommentVo = JSONUtil.toBean((String) Value, ScreenplayCommentVo.class);
+        screenplayCommentVo.setContent(screenplayComment.getContent());
+        cacheManager.putValueToCache(valueKey, JSONUtil.toJsonStr(screenplayCommentVo), cacheManager.getRedisZSetExpireTime());
+    }
+
+    private void canalDeleteHandle(CanalHandleVO canalHandleVO){
+        ScreenplayComment screenplayComment = JSONUtil.toBean(canalHandleVO.getJsonDataStr(), ScreenplayComment.class);
+        String ascSortedKey = getSortedKey(CacheUtils.ASC, screenplayComment.getScreenplayId(), screenplayComment.getTargetId());
+        String descSortedKey = getSortedKey(CacheUtils.DESC, screenplayComment.getScreenplayId(), screenplayComment.getTargetId());
+        String valueKey = ScreenplayCacheConstant.getScreenplayCommentCacheKey(screenplayComment.getId().toString());
+
+        cacheManager.zSetRemove(ascSortedKey, screenplayComment.getId());
+        cacheManager.zSetRemove(descSortedKey, screenplayComment.getId());
+        cacheManager.removeValueCache(valueKey);
+
+        String totalKey = getSortedTotalKey(screenplayComment.getScreenplayId(), screenplayComment.getTargetId());
+        // 更新 total
+        Long total = cacheManager.getTotal(totalKey);
+        if(total == null){
+            return;
+        }
+
+        cacheManager.putValueToCache(totalKey, total - 1, cacheManager.getRedisZSetExpireTime());
+    }
+
     private Page<ScreenplayCommentVo> queryScreenplayCommentVo(ScreenplayCommentQueryRequest screenplayCommentQueryRequest,
-                                                         Long current, Long size) {
+                                                               Long current, Long size) {
         String order = screenplayCommentQueryRequest.getSortOrder();
         Long screenplayId = screenplayCommentQueryRequest.getScreenplayId();
         Long targetId = screenplayCommentQueryRequest.getTargetId();

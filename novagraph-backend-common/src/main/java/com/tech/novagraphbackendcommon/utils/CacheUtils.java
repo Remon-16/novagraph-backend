@@ -12,6 +12,10 @@ public class CacheUtils {
      */
     public static final String APP_NAME = "novagraph";
 
+    public static final String DESC = "descend";
+
+    public static final String ASC = "ascend";
+
     public static String getHexLockString(Object queryCondition){
         String queryConditionString = JSONUtil.toJsonStr(queryCondition);
         return DigestUtils.md5DigestAsHex(queryConditionString.getBytes());

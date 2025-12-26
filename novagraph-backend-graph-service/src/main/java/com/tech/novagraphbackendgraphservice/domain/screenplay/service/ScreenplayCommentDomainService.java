@@ -3,6 +3,7 @@ package com.tech.novagraphbackendgraphservice.domain.screenplay.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendmodel.dto.graph.DoThumbRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayCommentQueryRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayCommentRequest;
@@ -50,5 +51,16 @@ public interface ScreenplayCommentDomainService extends IService<ScreenplayComme
      */
     Page<ScreenplayCommentVo> getScreenplayCommentVo(ScreenplayCommentQueryRequest screenplayCommentQueryRequest);
 
+    /**
+     * 评论缓存同步
+     * @param canalHandleVOList
+     */
+    void canalHandleScreenplayComment(List<CanalHandleVO> canalHandleVOList);
+
+    /**
+     * 根据 ID 获取评论
+     * @param ScreenplayCommentId
+     * @return
+     */
     ScreenplayComment getById(Long ScreenplayCommentId);
 }
