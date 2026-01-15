@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.crypto.SecretKey;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -55,6 +52,7 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
         user.setUserName(userAccount);
+        user.setRoomCode(UUID.randomUUID().toString());
         user.setUserRole(UserRoleEnum.USER.getValue());
         boolean saveResult = userRepository.save(user);
         if (!saveResult) {
@@ -110,6 +108,11 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public LoginUserVO getLoginUserVO(HttpServletRequest request) {
         User currentUser = getUserFromRequest(request);
+        // 数据库查完整信息
+        currentUser = this.getById(currentUser.getId());
+        if (currentUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
         return this.getLoginUserVO(currentUser);
     }
 

@@ -89,17 +89,6 @@
 			<artifactId>hutool-all</artifactId>
 			<version>5.8.26</version>
 		</dependency>
-		<!-- 数据库操作：https://mp.baomidou.com/ -->
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-			<version>3.5.12</version>
-		</dependency>
-		<!-- MyBatis Plus 分页插件 -->
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-jsqlparser-4.9</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

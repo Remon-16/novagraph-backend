@@ -16,5 +16,3 @@ spring:
           uri: lb://novagraph-backend-user-service
           predicates:
             - Path=/api/user/**
-          filters:
-            - RewritePath=/api/user/(?<segment>.*), /$\{segment}
