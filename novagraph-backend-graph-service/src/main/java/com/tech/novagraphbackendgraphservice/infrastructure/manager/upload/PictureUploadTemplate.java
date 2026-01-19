@@ -10,11 +10,11 @@ import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
 import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
 
-import com.tech.imagecorebackendpictureservice.infrastructure.manager.upload.model.dto.file.UploadPictureResult;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendgraphservice.api.CosManager;
 import com.tech.novagraphbackendgraphservice.infrastructure.config.CosClientConfig;
+import com.tech.novagraphbackendmodel.vo.graph.UploadPictureResult;
 import lombok.extern.slf4j.Slf4j;
 
 import jakarta.annotation.Resource;

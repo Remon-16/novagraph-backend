@@ -2,6 +2,7 @@ package com.tech.novagraphbackenduserservice.application.service.impl;
 
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
+import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
 import com.tech.novagraphbackenduserservice.application.service.UserApplicationService;
@@ -9,6 +10,7 @@ import com.tech.novagraphbackenduserservice.domain.user.service.UserDomainServic
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -51,5 +53,16 @@ public class UserApplicationServiceImpl implements UserApplicationService {
         ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
         user.setUserPassword("");
         return user;
+    }
+
+    @Override
+    public void updateUser(User user) {
+        boolean result = userDomainService.updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+    }
+
+    @Override
+    public boolean updateUserAvatar(MultipartFile avatar, UserUpdateInfoRequest userUpdateInfoRequest, User loginUser) {
+        return userDomainService.updateUserAvatar(avatar, userUpdateInfoRequest, loginUser);
     }
 }

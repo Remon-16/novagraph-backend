@@ -6,6 +6,7 @@ import com.tech.novagraphbackendmodel.dto.graph.PictureUploadRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.graph.PictureVO;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface PictureDomainService {
 
@@ -28,4 +29,6 @@ public interface PictureDomainService {
      * @return
      */
     Page<PictureVO> listPictureVOByPage(PictureQueryRequest pictureQueryRequest, HttpServletRequest request);
+
+    String uploadUserAvatar(MultipartFile multipartFile, String uploadPathPrefix);
 }

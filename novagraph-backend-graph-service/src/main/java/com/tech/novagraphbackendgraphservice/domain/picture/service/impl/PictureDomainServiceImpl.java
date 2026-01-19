@@ -25,11 +25,13 @@ import com.tech.novagraphbackendmodel.graph.constant.PictureCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.Picture;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.graph.PictureVO;
+import com.tech.novagraphbackendmodel.vo.graph.UploadPictureResult;
 import com.tech.novagraphbackendmodel.vo.user.UserListVO;
 import com.tech.novagraphbackendserviceclient.UserFeignClient;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.List;
@@ -81,7 +83,7 @@ public class PictureDomainServiceImpl extends ServiceImpl<PictureMapper, Picture
         if (inputSource instanceof String) {
             pictureUploadTemplate = urlPictureUpload;
         }
-        com.tech.imagecorebackendpictureservice.infrastructure.manager.upload.model.dto.file.UploadPictureResult uploadPictureResult = pictureUploadTemplate.uploadPicture(inputSource, uploadPathPrefix);
+        UploadPictureResult uploadPictureResult = pictureUploadTemplate.uploadPicture(inputSource, uploadPathPrefix);
         // 构造要入库的图片信息
         Picture picture = new Picture();
         picture.setUrl(uploadPictureResult.getUrl());
@@ -255,5 +257,11 @@ public class PictureDomainServiceImpl extends ServiceImpl<PictureMapper, Picture
         });
         pictureVOPage.setRecords(pictureVOList);
         return pictureVOPage;
+    }
+
+    @Override
+    public String uploadUserAvatar(MultipartFile multipartFile, String uploadPathPrefix) {
+        UploadPictureResult uploadPictureResult = filePictureUpload.uploadPicture(multipartFile, uploadPathPrefix);
+        return uploadPictureResult.getUrl();
     }
 }

@@ -1,4 +1,4 @@
-package com.tech.imagecorebackendpictureservice.infrastructure.manager.upload.model.dto.file;
+package com.tech.novagraphbackendmodel.vo.graph;
 
 import lombok.Data;
 

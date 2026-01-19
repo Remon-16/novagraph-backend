@@ -7,9 +7,11 @@ import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendcommon.utils.JwtUtils;
+import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.user.valueobject.UserRoleEnum;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
+import com.tech.novagraphbackendserviceclient.PictureFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserRepository;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserDomainService;
 import com.tech.novagraphbackenduserservice.infrastructure.mapper.UserMapper;
@@ -18,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.SecretKey;
 import java.util.*;
@@ -29,6 +32,9 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private UserRepository userRepository;
+
+    @Resource
+    private PictureFeignClient pictureFeignClient;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -154,5 +160,16 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
         } catch (NumberFormatException e) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户信息格式错误");
         }
+    }
+
+    @Override
+    public boolean updateUserAvatar(MultipartFile avatar, UserUpdateInfoRequest userUpdateInfoRequest, User loginUser) {
+        String uploadPathPrefix = String.format("public/%s", loginUser.getId());
+        String url = pictureFeignClient.uploadUserAvatar(avatar, uploadPathPrefix);
+        User user = new User();
+        user.setId(loginUser.getId());
+        user.setUserAvatar(url);
+        userRepository.updateById(user);
+        return true;
     }
 }

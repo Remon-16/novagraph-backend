@@ -1,8 +1,10 @@
 package com.tech.novagraphbackenduserservice.application.service;
 
+import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -47,4 +49,8 @@ public interface UserApplicationService {
     User getUserById(long id);
 
     List<User> listByIds(Set<Long> userIdSet);
+
+    void updateUser(User user);
+
+    boolean updateUserAvatar(MultipartFile avatar, UserUpdateInfoRequest userUpdateInfoRequest, User loginUser);
 }
