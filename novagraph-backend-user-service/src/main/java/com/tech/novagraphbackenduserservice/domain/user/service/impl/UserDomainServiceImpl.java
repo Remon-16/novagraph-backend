@@ -11,6 +11,7 @@ import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.user.valueobject.UserRoleEnum;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
+import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import com.tech.novagraphbackendserviceclient.PictureFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserRepository;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserDomainService;
@@ -171,5 +172,15 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
         user.setUserAvatar(url);
         userRepository.updateById(user);
         return true;
+    }
+
+    @Override
+    public UserVO getUserVO(User user) {
+        if (user == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtil.copyProperties(user, userVO);
+        return userVO;
     }
 }

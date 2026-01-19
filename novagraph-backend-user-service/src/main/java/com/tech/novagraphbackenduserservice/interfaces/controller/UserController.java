@@ -10,6 +10,7 @@ import com.tech.novagraphbackendmodel.dto.user.UserRegisterRequest;
 import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
+import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import com.tech.novagraphbackenduserservice.application.service.UserApplicationService;
 import com.tech.novagraphbackenduserservice.interfaces.controller.assembler.UserAssembler;
 import jakarta.annotation.Resource;
@@ -78,5 +79,16 @@ public class UserController {
         User loginUser = userApplicationService.getLoginUser(request);
         boolean res = userApplicationService.updateUserAvatar(multipartFile, userUpdateInfoRequest, loginUser);
         return ResultUtils.success(res);
+    }
+
+    /**
+     * 根据 id 获取包装类
+     */
+    @GetMapping("/get/vo")
+    public BaseResponse<UserVO> getUserVOById(long id) {
+        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+        User user = userApplicationService.getUserById(id);
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
+        return ResultUtils.success(userApplicationService.getUserVO(user));
     }
 }

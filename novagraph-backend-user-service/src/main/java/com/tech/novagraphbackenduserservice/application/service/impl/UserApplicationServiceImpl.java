@@ -5,6 +5,7 @@ import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
+import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import com.tech.novagraphbackenduserservice.application.service.UserApplicationService;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserDomainService;
 import jakarta.annotation.Resource;
@@ -64,5 +65,10 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     @Override
     public boolean updateUserAvatar(MultipartFile avatar, UserUpdateInfoRequest userUpdateInfoRequest, User loginUser) {
         return userDomainService.updateUserAvatar(avatar, userUpdateInfoRequest, loginUser);
+    }
+
+    @Override
+    public UserVO getUserVO(User user) {
+        return userDomainService.getUserVO(user);
     }
 }

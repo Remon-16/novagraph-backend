@@ -3,6 +3,7 @@ package com.tech.novagraphbackenduserservice.application.service;
 import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
+import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,4 +54,12 @@ public interface UserApplicationService {
     void updateUser(User user);
 
     boolean updateUserAvatar(MultipartFile avatar, UserUpdateInfoRequest userUpdateInfoRequest, User loginUser);
+
+    /**
+     * 获得脱敏后的用户信息
+     *
+     * @param user
+     * @return
+     */
+    UserVO getUserVO(User user);
 }
