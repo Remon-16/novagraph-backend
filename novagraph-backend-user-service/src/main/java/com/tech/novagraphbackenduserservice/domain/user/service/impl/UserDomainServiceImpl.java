@@ -12,7 +12,7 @@ import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.user.valueobject.UserRoleEnum;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
-import com.tech.novagraphbackendserviceclient.PictureFeignClient;
+import com.tech.novagraphbackendserviceclient.GraphFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserRepository;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserDomainService;
 import com.tech.novagraphbackenduserservice.infrastructure.mapper.UserMapper;
@@ -35,7 +35,7 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
     private UserRepository userRepository;
 
     @Resource
-    private PictureFeignClient pictureFeignClient;
+    private GraphFeignClient graphFeignClient;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -166,7 +166,7 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean updateUserAvatar(MultipartFile avatar, UserUpdateInfoRequest userUpdateInfoRequest, User loginUser) {
         String uploadPathPrefix = String.format("public/%s", loginUser.getId());
-        String url = pictureFeignClient.uploadUserAvatar(avatar, uploadPathPrefix);
+        String url = graphFeignClient.uploadUserAvatar(avatar, uploadPathPrefix);
         User user = new User();
         user.setId(loginUser.getId());
         user.setUserAvatar(url);

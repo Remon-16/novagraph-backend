@@ -125,3 +125,21 @@ create table if not exists screenplay_comment(
     INDEX idx_screenplayId (screenplayId)       -- 提升基于用户的查询效率
 )comment '剧本评论表' collate = utf8mb4_unicode_ci;
 
+-- 消息表
+create table if not exists message(
+    id            bigint auto_increment primary key,
+    userId        bigint                                 not null comment '用户 id',
+    content       longtext                               not null comment '消息内容',
+    messageType   varchar(128)                           not null comment '消息类型',
+    messageState  varchar(128)                           not null comment '消息状态', -- 0 未读 1 已读
+    senderId      bigint                                 not null comment '发送者 id', -- 系统消息用户： system001
+    screenplayId  bigint                                 null  comment '剧本 id',
+    commentId     bigint                                 null  comment '评论 id',
+    createTime    datetime default CURRENT_TIMESTAMP     not null comment '创建时间',
+    editTime      datetime default CURRENT_TIMESTAMP     not null comment '编辑时间',
+    updateTime    datetime default CURRENT_TIMESTAMP     not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete      tinyint  default 0                     not null comment '是否删除',
+
+    INDEX idx_userId (userId)       -- 提升基于用户的查询效率
+)comment '消息表' collate = utf8mb4_unicode_ci;
+

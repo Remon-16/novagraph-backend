@@ -8,7 +8,7 @@ import org.springframework.beans.BeanUtils;
 import java.util.Date;
 
 @Data
-public class ScreenplayCommentVo {
+public class ScreenplayCommentVO {
     private Long id;
 
     /**
@@ -56,8 +56,8 @@ public class ScreenplayCommentVo {
      */
     private Date createTime;
 
-    public static ScreenplayCommentVo objToVo(ScreenplayComment screenplayComment) {
-        ScreenplayCommentVo screenplayCommentVo = new ScreenplayCommentVo();
+    public static ScreenplayCommentVO objToVo(ScreenplayComment screenplayComment) {
+        ScreenplayCommentVO screenplayCommentVo = new ScreenplayCommentVO();
         BeanUtils.copyProperties(screenplayComment, screenplayCommentVo);
         return screenplayCommentVo;
     }

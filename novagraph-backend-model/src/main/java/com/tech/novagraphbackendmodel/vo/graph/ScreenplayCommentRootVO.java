@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class ScreenplayCommentRootVo {
+public class ScreenplayCommentRootVO {
     /**
      * id
      */
@@ -41,5 +41,5 @@ public class ScreenplayCommentRootVo {
     /**
      * 子评论
      */
-    Page<ScreenplayCommentVo> screenplayCommentVoPage;
+    Page<ScreenplayCommentVO> screenplayCommentVoPage;
 }

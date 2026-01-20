@@ -21,8 +21,8 @@ import com.tech.novagraphbackendmodel.dto.graph.ScreenplayCommentRequest;
 import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayComment;
 import com.tech.novagraphbackendmodel.user.entity.User;
-import com.tech.novagraphbackendmodel.vo.graph.ScreenplayCommentRootVo;
-import com.tech.novagraphbackendmodel.vo.graph.ScreenplayCommentVo;
+import com.tech.novagraphbackendmodel.vo.graph.ScreenplayCommentRootVO;
+import com.tech.novagraphbackendmodel.vo.graph.ScreenplayCommentVO;
 import com.tech.novagraphbackendmodel.vo.user.UserListVO;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import com.tech.novagraphbackendserviceclient.UserFeignClient;
@@ -90,7 +90,7 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
     }
 
     @Override
-    public Page<ScreenplayCommentRootVo> getScreenplayCommentRootVo(ScreenplayCommentQueryRequest screenplayCommentQueryRequest) {
+    public Page<ScreenplayCommentRootVO> getScreenplayCommentRootVo(ScreenplayCommentQueryRequest screenplayCommentQueryRequest) {
         ThrowUtils.throwIf(screenplayCommentQueryRequest == null,
                 ErrorCode.PARAMS_ERROR, "screenplayCommentQueryRequest为空");
         ThrowUtils.throwIf(screenplayCommentQueryRequest.getScreenplayId() == null,
@@ -101,27 +101,27 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
         ThrowUtils.throwIf(size > 30, ErrorCode.PARAMS_ERROR);
         // 先查直接评论在剧本上的 targetId == null
         screenplayCommentQueryRequest.setTargetId(null);
-        Page<ScreenplayCommentVo> screenplayCommentVoPage = queryScreenplayCommentVo(screenplayCommentQueryRequest, current, size);
+        Page<ScreenplayCommentVO> screenplayCommentVoPage = queryScreenplayCommentVo(screenplayCommentQueryRequest, current, size);
         // 接着通过评论的id，去查前10个子评论
-        List<ScreenplayCommentRootVo> screenplayCommentRootVoList = new ArrayList<>();
-        for(ScreenplayCommentVo screenplayCommentVo : screenplayCommentVoPage.getRecords()){
+        List<ScreenplayCommentRootVO> screenplayCommentRootVOList = new ArrayList<>();
+        for(ScreenplayCommentVO screenplayCommentVo : screenplayCommentVoPage.getRecords()){
             ScreenplayCommentQueryRequest screenplayCommentQueryRequest1 = new ScreenplayCommentQueryRequest();
             screenplayCommentQueryRequest1.setCurrent(1);
             screenplayCommentQueryRequest1.setPageSize(10);
             screenplayCommentQueryRequest1.setTargetId(screenplayCommentVo.getId());
             screenplayCommentQueryRequest1.setScreenplayId(screenplayCommentVo.getScreenplayId());
             screenplayCommentQueryRequest1.setSortOrder(screenplayCommentQueryRequest.getSortOrder());
-            Page<ScreenplayCommentVo> screenplayCommentVoPage2 = null;
+            Page<ScreenplayCommentVO> screenplayCommentVoPage2 = null;
 
             screenplayCommentVoPage2 = this.getScreenplayCommentVo(screenplayCommentQueryRequest1);
-            ScreenplayCommentRootVo screenplayCommentRootVo = new ScreenplayCommentRootVo();
+            ScreenplayCommentRootVO screenplayCommentRootVo = new ScreenplayCommentRootVO();
             BeanUtils.copyProperties(screenplayCommentVo, screenplayCommentRootVo);
             screenplayCommentRootVo.setScreenplayCommentVoPage(screenplayCommentVoPage2);
-            screenplayCommentRootVoList.add(screenplayCommentRootVo);
+            screenplayCommentRootVOList.add(screenplayCommentRootVo);
         }
 
-        Page<ScreenplayCommentRootVo> screenplayCommentRootVoPage = new Page<>();
-        screenplayCommentRootVoPage.setRecords(screenplayCommentRootVoList);
+        Page<ScreenplayCommentRootVO> screenplayCommentRootVoPage = new Page<>();
+        screenplayCommentRootVoPage.setRecords(screenplayCommentRootVOList);
         screenplayCommentRootVoPage.setCurrent(screenplayCommentVoPage.getCurrent());
         screenplayCommentRootVoPage.setTotal(screenplayCommentVoPage.getTotal());
         screenplayCommentRootVoPage.setSize(screenplayCommentVoPage.getSize());
@@ -129,7 +129,7 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
     }
 
     @Override
-    public Page<ScreenplayCommentVo> getScreenplayCommentVo(ScreenplayCommentQueryRequest screenplayCommentQueryRequest) {
+    public Page<ScreenplayCommentVO> getScreenplayCommentVo(ScreenplayCommentQueryRequest screenplayCommentQueryRequest) {
         ThrowUtils.throwIf(screenplayCommentQueryRequest == null,
                 ErrorCode.PARAMS_ERROR, "screenplayCommentQueryRequest为空");
         ThrowUtils.throwIf(screenplayCommentQueryRequest.getScreenplayId() == null,
@@ -174,8 +174,8 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
         String valueKey = ScreenplayCacheConstant.getScreenplayCommentCacheKey(screenplayComment.getId().toString());
         List<ScreenplayComment> screenplayCommentList = new ArrayList<>();
         screenplayCommentList.add(screenplayComment);
-        List<ScreenplayCommentVo> screenplayCommentVoList = this.getScreenplayCommentVo(screenplayCommentList);
-        String valueStr = JSONUtil.toJsonStr(screenplayCommentVoList.getFirst());
+        List<ScreenplayCommentVO> screenplayCommentVOList = this.getScreenplayCommentVo(screenplayCommentList);
+        String valueStr = JSONUtil.toJsonStr(screenplayCommentVOList.getFirst());
         // 更新 total
         Long total = cacheManager.getTotal(totalKey);
         if(total == null){
@@ -194,7 +194,7 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
             return;
         }
         Object Value = cacheManager.getValueCache(valueKey);
-        ScreenplayCommentVo screenplayCommentVo = JSONUtil.toBean((String) Value, ScreenplayCommentVo.class);
+        ScreenplayCommentVO screenplayCommentVo = JSONUtil.toBean((String) Value, ScreenplayCommentVO.class);
         screenplayCommentVo.setContent(screenplayComment.getContent());
         cacheManager.putValueToCache(valueKey, JSONUtil.toJsonStr(screenplayCommentVo), cacheManager.getRedisZSetExpireTime());
     }
@@ -219,7 +219,7 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
         cacheManager.putValueToCache(totalKey, total - 1, cacheManager.getRedisZSetExpireTime());
     }
 
-    private Page<ScreenplayCommentVo> queryScreenplayCommentVo(ScreenplayCommentQueryRequest screenplayCommentQueryRequest,
+    private Page<ScreenplayCommentVO> queryScreenplayCommentVo(ScreenplayCommentQueryRequest screenplayCommentQueryRequest,
                                                                Long current, Long size) {
         String order = screenplayCommentQueryRequest.getSortOrder();
         Long screenplayId = screenplayCommentQueryRequest.getScreenplayId();
@@ -227,7 +227,7 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
         String sortedKey = getSortedKey(order, screenplayId, targetId);
         String sortedTotalKey = getSortedTotalKey(screenplayId, targetId);
         // 1 先查评论的缓存
-        Page<ScreenplayCommentVo> screenplayCommentVoPage = queryCache(sortedKey, sortedTotalKey,
+        Page<ScreenplayCommentVO> screenplayCommentVoPage = queryCache(sortedKey, sortedTotalKey,
                 ScreenplayCacheConstant.SCREENPLAY_COMMENT_CACHE_PREFIX, order, current, size);
         if(screenplayCommentVoPage == null){
             String lockStr = CacheUtils.getHexLockString(screenplayCommentQueryRequest);
@@ -242,18 +242,18 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
                         Page<ScreenplayComment> screenplayCommentPage = page(new Page<>(current, size),
                                 getQueryWrapper(screenplayCommentQueryRequest));
                         List<ScreenplayComment> screenplayCommentList = screenplayCommentPage.getRecords();
-                        List<ScreenplayCommentVo> screenplayCommentVoList = this.getScreenplayCommentVo(screenplayCommentList);
+                        List<ScreenplayCommentVO> screenplayCommentVOList = this.getScreenplayCommentVo(screenplayCommentList);
                         screenplayCommentVoPage = new Page<>();
-                        screenplayCommentVoPage.setRecords(screenplayCommentVoList);
+                        screenplayCommentVoPage.setRecords(screenplayCommentVOList);
                         screenplayCommentVoPage.setCurrent(screenplayCommentPage.getCurrent());
                         screenplayCommentVoPage.setSize(size);
                         screenplayCommentVoPage.setTotal(screenplayCommentPage.getTotal());
                         // 4 写入缓存
-                        screenplayCommentVoList.forEach(screenplayCommentVo -> {
-                            Double score = (double)screenplayCommentVo.getCreateTime().getTime();
-                            cacheManager.zSetAdd(sortedKey, screenplayCommentVo.getId(), score);
-                            cacheManager.putValueToCache(ScreenplayCacheConstant.getScreenplayCommentCacheKey(screenplayCommentVo.getId().toString()),
-                                    JSONUtil.toJsonStr(screenplayCommentVo), cacheManager.getRedisZSetExpireTime());
+                        screenplayCommentVOList.forEach(screenplayCommentVO -> {
+                            Double score = (double) screenplayCommentVO.getCreateTime().getTime();
+                            cacheManager.zSetAdd(sortedKey, screenplayCommentVO.getId(), score);
+                            cacheManager.putValueToCache(ScreenplayCacheConstant.getScreenplayCommentCacheKey(screenplayCommentVO.getId().toString()),
+                                    JSONUtil.toJsonStr(screenplayCommentVO), cacheManager.getRedisZSetExpireTime());
                         });
                         cacheManager.putValueToCache(sortedTotalKey, screenplayCommentPage.getTotal(), cacheManager.getRedisZSetExpireTime());
                     } catch (Exception e) {
@@ -287,26 +287,26 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
         }
     }
 
-    private Page<ScreenplayCommentVo> queryCache(String sortedKey, String sortedTotalKey, String keyHead, String order, Long page, Long size){
+    private Page<ScreenplayCommentVO> queryCache(String sortedKey, String sortedTotalKey, String keyHead, String order, Long page, Long size){
         SortedCacheResult sortedCacheResult = cacheManager.querySortedValues(sortedKey, sortedTotalKey, keyHead, order, page, size);
         if(sortedCacheResult == null){
             return null;
         }
         Map<Object, Object> queryValueMap = sortedCacheResult.getValueMap();
-        List<ScreenplayCommentVo> screenplayCommentVoList = new ArrayList<>();
+        List<ScreenplayCommentVO> screenplayCommentVOList = new ArrayList<>();
         for(Object value : queryValueMap.values()){
-            ScreenplayCommentVo screenplayCommentVo = JSONUtil.toBean((String)value, ScreenplayCommentVo.class);
-            screenplayCommentVoList.add(screenplayCommentVo);
+            ScreenplayCommentVO screenplayCommentVo = JSONUtil.toBean((String)value, ScreenplayCommentVO.class);
+            screenplayCommentVOList.add(screenplayCommentVo);
         }
-        Page<ScreenplayCommentVo> screenplayCommentVoPage = new Page<>();
-        screenplayCommentVoPage.setRecords(screenplayCommentVoList);
+        Page<ScreenplayCommentVO> screenplayCommentVoPage = new Page<>();
+        screenplayCommentVoPage.setRecords(screenplayCommentVOList);
         screenplayCommentVoPage.setCurrent(page);
         screenplayCommentVoPage.setSize(size);
         screenplayCommentVoPage.setTotal(sortedCacheResult.getTotal());
         return screenplayCommentVoPage;
     }
 
-    private void getCommentUserInfo(ScreenplayCommentVo screenplayCommentVo, Map<Long, UserVO> commentUserMap, Long targetId) {
+    private void getCommentUserInfo(ScreenplayCommentVO screenplayCommentVo, Map<Long, UserVO> commentUserMap, Long targetId) {
         // 先查这个集合里有没有，如果没有再去数据库查
         if(commentUserMap.containsKey(targetId)){
             UserVO user = commentUserMap.get(targetId);
@@ -321,7 +321,7 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
         }
     }
 
-    private List<ScreenplayCommentVo> getScreenplayCommentVo(List<ScreenplayComment> screenplayCommentList){
+    private List<ScreenplayCommentVO> getScreenplayCommentVo(List<ScreenplayComment> screenplayCommentList){
         if(screenplayCommentList == null || screenplayCommentList.isEmpty()){
             return new ArrayList<>();
         }
@@ -330,31 +330,31 @@ public class ScreenplayCommentDomainServiceImpl extends ServiceImpl<ScreenplayCo
         List<User> userList = userListVO.getUserList(userListVO.getUserListJson());
         Map<Long, List<User>> userIdUserListMap = userList.stream()
                 .collect(Collectors.groupingBy(User::getId));
-        List<ScreenplayCommentVo> screenplayCommentVoList = screenplayCommentList.stream().map(ScreenplayCommentVo::objToVo).toList();
+        List<ScreenplayCommentVO> screenplayCommentVOList = screenplayCommentList.stream().map(ScreenplayCommentVO::objToVo).toList();
 
         Map<Long, UserVO> commentUserMap = new HashMap<>();
-        screenplayCommentVoList.forEach(screenplayCommentVo -> {
-            Long userId = screenplayCommentVo.getUserId();
+        screenplayCommentVOList.forEach(screenplayCommentVO -> {
+            Long userId = screenplayCommentVO.getUserId();
             User user = null;
             if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).getFirst();
             }
-            screenplayCommentVo.setUser(userFeignClient.getUserVO(user));
-            commentUserMap.put(screenplayCommentVo.getId(), screenplayCommentVo.getUser());
+            screenplayCommentVO.setUser(userFeignClient.getUserVO(user));
+            commentUserMap.put(screenplayCommentVO.getId(), screenplayCommentVO.getUser());
         });
 
         // set target的用户相关信息
-        screenplayCommentVoList.forEach(screenplayCommentVo -> {
-            Long targetId = screenplayCommentVo.getTargetId();
-            Long secondTargetId = screenplayCommentVo.getSecondTargetId();
+        screenplayCommentVOList.forEach(screenplayCommentVO -> {
+            Long targetId = screenplayCommentVO.getTargetId();
+            Long secondTargetId = screenplayCommentVO.getSecondTargetId();
             if(targetId != null && secondTargetId == null){
-                this.getCommentUserInfo(screenplayCommentVo, commentUserMap, targetId);
+                this.getCommentUserInfo(screenplayCommentVO, commentUserMap, targetId);
             }
             if (targetId != null && secondTargetId != null) {
-                this.getCommentUserInfo(screenplayCommentVo, commentUserMap, secondTargetId);
+                this.getCommentUserInfo(screenplayCommentVO, commentUserMap, secondTargetId);
             }
         });
 
-        return screenplayCommentVoList;
+        return screenplayCommentVOList;
     }
 }

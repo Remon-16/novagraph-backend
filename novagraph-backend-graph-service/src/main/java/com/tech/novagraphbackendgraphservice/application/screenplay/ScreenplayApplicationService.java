@@ -1,7 +1,6 @@
-package com.tech.novagraphbackendgraphservice.domain.screenplay.service;
+package com.tech.novagraphbackendgraphservice.application.screenplay;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayAddRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayQueryRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayUpdateRequest;
@@ -9,7 +8,7 @@ import com.tech.novagraphbackendmodel.graph.entity.Screenplay;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 
-public interface ScreenplayDomainService extends IService<Screenplay> {
+public interface ScreenplayApplicationService {
     Screenplay addScreenplay(ScreenplayAddRequest screenplayAddRequest);
 
     Boolean updateScreenplay(ScreenplayUpdateRequest screenplayUpdateRequest);

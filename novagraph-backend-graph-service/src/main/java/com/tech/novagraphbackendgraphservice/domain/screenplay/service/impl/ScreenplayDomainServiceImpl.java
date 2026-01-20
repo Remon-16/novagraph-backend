@@ -15,6 +15,7 @@ import com.tech.novagraphbackendmodel.dto.graph.ScreenplayAddRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayQueryRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayUpdateRequest;
 import com.tech.novagraphbackendmodel.graph.entity.Screenplay;
+import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
