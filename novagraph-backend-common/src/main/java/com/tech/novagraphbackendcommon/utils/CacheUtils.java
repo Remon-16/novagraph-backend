@@ -26,4 +26,12 @@ public class CacheUtils {
         // 获取到当前时间前最近的整数秒，比如当前 11:20:23 ，获取到 11:20:20
         return DateUtil.format(nowDate, "HH:mm:") + (DateUtil.second(nowDate) / 10) * 10;
     }
+
+    public static String getCacheKey(String keyHead, String keyTail) {
+        return keyHead + ":" + keyTail;
+    }
+
+    public static String getRedisCacheKey(String keyHead, String keyTail){
+        return APP_NAME + ":" + keyHead + ":" + keyTail;
+    }
 }

@@ -1,18 +1,16 @@
 package com.tech.novagraphbackendmodel.vo.graph;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tech.novagraphbackendcommon.cache.bean.BaseCommentVO;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ScreenplayCommentRootVO {
-    /**
-     * id
-     */
-    private Long id;
-
+public class ScreenplayCommentRootVO extends BaseCommentVO {
     /**
      * 用户 id
      */
@@ -27,11 +25,6 @@ public class ScreenplayCommentRootVO {
      * 评论内容
      */
     private String content;
-
-    /**
-     * 创建时间
-     */
-    private Date createTime;
 
     /**
      * 用户信息
