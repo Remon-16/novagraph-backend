@@ -12,7 +12,6 @@
             <result property="tags" column="tags" />
             <result property="cover" column="cover" />
             <result property="plotTree" column="plotTree" />
-            <result property="thumbCount" column="thumbCount" />
             <result property="userId" column="userId" />
             <result property="editTime" column="editTime" />
             <result property="createTime" column="createTime" />
@@ -22,7 +21,7 @@
 
     <sql id="Base_Column_List">
         id,name,introduction,category,tags,cover,
-        plotTree,thumbCount,userId,editTime,createTime,updateTime,
+        plotTree,userId,editTime,createTime,updateTime,
         isDelete
     </sql>
 
