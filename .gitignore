@@ -2,6 +2,7 @@
 application-local.yml
 application-prod.yml
 test.sql
+datas.sql
 
 HELP.md
 target/

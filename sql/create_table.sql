@@ -19,6 +19,7 @@ create table if not exists user
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete     tinyint      default 0                 not null comment '是否删除',
+
     UNIQUE KEY uk_userAccount (userAccount),
     UNIQUE KEY uk_roomCode (roomCode),
     INDEX idx_userName (userName),        -- 提升基于用户名的查询性能
@@ -44,6 +45,7 @@ create table if not exists picture
     editTime     datetime default CURRENT_TIMESTAMP not null comment '编辑时间',
     updateTime   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete     tinyint  default 0                 not null comment '是否删除',
+
     INDEX idx_name (name),                 -- 提升基于图片名称的查询性能
     INDEX idx_category (category),         -- 提升基于分类的查询性能
     INDEX idx_tags (tags),                 -- 提升基于标签的查询性能
@@ -89,8 +91,6 @@ create table if not exists screenplay_section
     INDEX idx_userId (userId)               -- 提升基于用户 ID 的查询性能
 ) comment '剧本章节' collate = utf8mb4_unicode_ci;
 
--- 剧本表添加点赞数量字段
-
 -- 剧本统计数据 方便剧本和统计数据在缓存上使用不同方案
 create table if not exists screenplay_statistics
 (
@@ -113,10 +113,10 @@ create table if not exists screenplay_thumb
     id           bigint auto_increment                  primary key,
     userId       bigint                                 not null comment '用户ID',
     screenplayId bigint                                 not null comment '剧本ID',
-    createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间'
+    createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+
+    INDEX screenplay_thumb (screenplayId)       -- 提升基于动态的查询效率
 )comment '剧本点赞记录表' collate = utf8mb4_unicode_ci;
-create unique index idx_userId_screenplayId
-    on screenplay_thumb (userId, screenplayId);
 
 -- 剧本评论表
 create table if not exists screenplay_comment(
@@ -215,7 +215,8 @@ create table if not exists user_play_history
     isDelete     tinyint      default 0                 not null comment '是否删除',
 
     INDEX idx_userId (userId),                  -- 提升基于用户的查询效率
-    INDEX idx_screenplayId (screenplayId)       -- 提升基于剧本的查询效率
+    INDEX idx_screenplayId (screenplayId),      -- 提升基于剧本的查询效率
+    INDEX idx_createTime (createTime)           -- 提升基于创建时间的查询效率
 ) comment '用户播放历史' collate = utf8mb4_unicode_ci;
 
 -- 用户收藏夹
@@ -229,7 +230,8 @@ create table if not exists user_favorite_folder
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete     tinyint      default 0                 not null comment '是否删除',
 
-    INDEX idx_userId (userId)                 -- 提升基于用户的查询效率
+    INDEX idx_userId (userId),                -- 提升基于用户的查询效率
+    INDEX idx_createTime (createTime)         -- 提升基于创建时间的查询效率
 ) comment '用户收藏夹' collate = utf8mb4_unicode_ci;
 
 -- 用户收藏
@@ -244,11 +246,74 @@ create table if not exists user_favorite_folder
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete     tinyint      default 0                 not null comment '是否删除',
 
-    INDEX idx_userId (userId),           -- 提升基于用户的查询效率
-    INDEX idx_folderId (folderId)
+    INDEX idx_userId (userId),                -- 提升基于用户的查询效率
+    INDEX idx_folderId (folderId),            -- 提升基于收藏夹的查询效率
+    INDEX idx_createTime (createTime)         -- 提升基于创建时间的查询效率
 ) comment '用户收藏' collate = utf8mb4_unicode_ci;
 
 -- 用户动态
+CREATE TABLE user_post (
+     id           bigint auto_increment primary key,
+     userId       bigint                                 not null comment '用户 id',
+     content      text                                   not null comment '文本内容',
+     postType     varchar(128)                          not null comment '类型：text-文字，screenplay-剧本，post-动态...',
+     quotedId     bigint                                 null comment '引用 id',
+     visibility   tinyint  default 0                     not null comment  '可见性：1-公开，2-私密...',
+
+     createTime   datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+     editTime     datetime default CURRENT_TIMESTAMP not null comment '编辑时间',
+     updateTime   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+     isDelete     tinyint  default 0                 not null comment '是否删除',
+
+     INDEX idx_user_id (userId),
+     INDEX idx_quoted_id (quotedId),
+     INDEX idx_create_time (createTime)
+) comment '用户动态表' collate = utf8mb4_unicode_ci;
 
 -- 动态评论
+create table if not exists screenplay_comment(
+     id           bigint auto_increment primary key,
+     userId       bigint                                 not null comment '用户 id',
+     postId       bigint                                 not null comment '动态 id',
+     targetId     bigint                                 null comment '目标 id 为空代表是直接评论在剧本上，不为空说明是多级评论',
+     secondTargetId bigint                               null comment '二级目标评论Id',
+     content      varchar(2048)                          not null comment '评论内容',
+     createTime   datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+     editTime     datetime default CURRENT_TIMESTAMP not null comment '编辑时间',
+     updateTime   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+     isDelete     tinyint  default 0                 not null comment '是否删除',
 
+     INDEX idx_userId (userId),       -- 提升基于用户的查询效率
+     INDEX idx_postId_target (postId, targetId), -- 优化直接评论查询
+     INDEX idx_target_time (targetId, createTime), -- 优化子评论查询
+     INDEX idx_postId (postId)       -- 提升基于动态 ID 的查询效率
+)comment '剧本评论表' collate = utf8mb4_unicode_ci;
+
+-- 动态统计数据 方便动态数据在缓存上使用不同方案
+create table if not exists user_post_statistics
+(
+    id             bigint auto_increment comment 'id' primary key,
+    postId         bigint                                 not null comment '动态 id',
+    userScore      bigint       default 0                 null comment '积分余额',
+    thumbCount     bigint       default 0                 null comment '点赞数量',
+    commentCount   bigint       default 0                 null comment '评论数量',
+    shareCount     bigint       default 0                 null comment '分享数量',
+    quotedCount    bigint       default 0                 null comment '引用数量',
+    editTime       datetime     default CURRENT_TIMESTAMP not null comment '编辑时间',
+    createTime     datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime     datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete       tinyint      default 0                 not null comment '是否删除',
+
+    INDEX idx_userId (postId)       -- 提升基于动态的查询效率
+) comment '动态统计数据' collate = utf8mb4_unicode_ci;
+
+-- 动态点赞记录表
+create table if not exists user_post_thumb
+(
+    id           bigint auto_increment                  primary key,
+    userId       bigint                                 not null comment '用户ID',
+    postId       bigint                                 not null comment '动态ID',
+    createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+
+    INDEX user_post_thumb (postId)       -- 提升基于动态的查询效率
+)comment '动态点赞记录表' collate = utf8mb4_unicode_ci;
