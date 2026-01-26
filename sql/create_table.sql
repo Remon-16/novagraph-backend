@@ -271,7 +271,7 @@ CREATE TABLE user_post (
 ) comment '用户动态表' collate = utf8mb4_unicode_ci;
 
 -- 动态评论
-create table if not exists post_comment(
+create table if not exists user_post_comment(
      id           bigint auto_increment primary key,
      userId       bigint                                 not null comment '用户 id',
      postId       bigint                                 not null comment '动态 id',

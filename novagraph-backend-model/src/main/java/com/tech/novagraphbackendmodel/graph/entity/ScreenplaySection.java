@@ -1,8 +1,9 @@
 package com.tech.novagraphbackendmodel.graph.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
@@ -12,11 +13,11 @@ import lombok.Data;
  */
 @TableName(value ="screenplay_section")
 @Data
-public class ScreenplaySection {
+public class ScreenplaySection implements Serializable {
     /**
      * id
      */
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -57,5 +58,10 @@ public class ScreenplaySection {
     /**
      * 是否删除
      */
+    @TableLogic
     private Integer isDelete;
+
+    @Serial
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }

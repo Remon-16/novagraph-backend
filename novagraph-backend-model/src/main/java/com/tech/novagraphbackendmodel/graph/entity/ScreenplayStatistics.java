@@ -8,12 +8,12 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * 剧本表
- * @TableName screenplay
+ * 剧本统计数据
+ * @TableName screenplay_statistics
  */
-@TableName(value ="screenplay")
+@TableName(value ="screenplay_statistics")
 @Data
-public class Screenplay implements Serializable {
+public class ScreenplayStatistics implements Serializable {
     /**
      * id
      */
@@ -21,39 +21,24 @@ public class Screenplay implements Serializable {
     private Long id;
 
     /**
-     * 剧本名称
+     * 剧本 id
      */
-    private String name;
+    private Long screenplayId;
 
     /**
-     * 简介
+     * 播放数量
      */
-    private String introduction;
+    private Long playCount;
 
     /**
-     * 分类
+     * 点赞数量
      */
-    private String category;
+    private Long thumbCount;
 
     /**
-     * 标签（JSON 数组）
+     * 收藏数量
      */
-    private String tags;
-
-    /**
-     * 剧本封面链接
-     */
-    private String cover;
-
-    /**
-     * 剧情树的JSON字符串
-     */
-    private String plotTree;
-
-    /**
-     * 用户 id
-     */
-    private Long userId;
+    private Long favoriteCount;
 
     /**
      * 编辑时间

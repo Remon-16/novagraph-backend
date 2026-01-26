@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tech.novagraphbackenduserservice.infrastructure.mapper.UserPostMapper">
+
+    <resultMap id="BaseResultMap" type="com.tech.novagraphbackendmodel.user.entity.UserPost">
+            <id property="id" column="id" />
+            <result property="userId" column="userId" />
+            <result property="content" column="content" />
+            <result property="postType" column="postType" />
+            <result property="quotedId" column="quotedId" />
+            <result property="visibility" column="visibility" />
+            <result property="createTime" column="createTime" />
+            <result property="editTime" column="editTime" />
+            <result property="updateTime" column="updateTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,content,postType,quotedId,visibility,
+        createTime,editTime,updateTime,isDelete
+    </sql>
+</mapper>

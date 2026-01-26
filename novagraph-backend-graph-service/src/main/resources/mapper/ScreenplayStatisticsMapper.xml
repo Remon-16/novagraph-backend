@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayStatisticsMapper">
+
+    <resultMap id="BaseResultMap" type="com.tech.novagraphbackendmodel.graph.entity.ScreenplayStatistics">
+            <id property="id" column="id" />
+            <result property="screenplayId" column="screenplayId" />
+            <result property="playCount" column="playCount" />
+            <result property="thumbCount" column="thumbCount" />
+            <result property="favoriteCount" column="favoriteCount" />
+            <result property="editTime" column="editTime" />
+            <result property="createTime" column="createTime" />
+            <result property="updateTime" column="updateTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,screenplayId,playCount,thumbCount,favoriteCount,editTime,
+        createTime,updateTime,isDelete
+    </sql>
+</mapper>

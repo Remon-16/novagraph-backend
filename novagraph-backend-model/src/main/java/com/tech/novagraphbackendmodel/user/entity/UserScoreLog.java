@@ -8,12 +8,12 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * 消息表
- * @TableName message
+ * 用户积分变动
+ * @TableName user_score_log
  */
-@TableName(value ="message")
+@TableName(value ="user_score_log")
 @Data
-public class Message implements Serializable {
+public class UserScoreLog implements Serializable {
     /**
      * 
      */
@@ -26,34 +26,14 @@ public class Message implements Serializable {
     private Long userId;
 
     /**
-     * 消息内容
+     * 积分变动值
      */
-    private String content;
+    private Long scoreAmount;
 
     /**
-     * 消息类型
+     * 积分变动类型
      */
-    private String messageType;
-
-    /**
-     * 消息状态
-     */
-    private String messageState;
-
-    /**
-     * 发送者 id
-     */
-    private Long senderId;
-
-    /**
-     * 剧本 id
-     */
-    private Long screenplayId;
-
-    /**
-     * 评论 id
-     */
-    private Long commentId;
+    private String scoreType;
 
     /**
      * 创建时间

@@ -1,4 +1,4 @@
-package com.tech.novagraphbackendmodel.graph.entity;
+package com.tech.novagraphbackendmodel.user.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 
@@ -8,12 +8,12 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * 剧本表
- * @TableName screenplay
+ * 动态统计数据
+ * @TableName user_post_statistics
  */
-@TableName(value ="screenplay")
+@TableName(value ="user_post_statistics")
 @Data
-public class Screenplay implements Serializable {
+public class UserPostStatistics implements Serializable {
     /**
      * id
      */
@@ -21,39 +21,34 @@ public class Screenplay implements Serializable {
     private Long id;
 
     /**
-     * 剧本名称
+     * 动态 id
      */
-    private String name;
+    private Long postId;
 
     /**
-     * 简介
+     * 积分余额
      */
-    private String introduction;
+    private Long userScore;
 
     /**
-     * 分类
+     * 点赞数量
      */
-    private String category;
+    private Long thumbCount;
 
     /**
-     * 标签（JSON 数组）
+     * 评论数量
      */
-    private String tags;
+    private Long commentCount;
 
     /**
-     * 剧本封面链接
+     * 分享数量
      */
-    private String cover;
+    private Long shareCount;
 
     /**
-     * 剧情树的JSON字符串
+     * 引用数量
      */
-    private String plotTree;
-
-    /**
-     * 用户 id
-     */
-    private Long userId;
+    private Long quotedCount;
 
     /**
      * 编辑时间

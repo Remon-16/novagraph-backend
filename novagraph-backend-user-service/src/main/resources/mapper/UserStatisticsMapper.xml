@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tech.novagraphbackenduserservice.infrastructure.mapper.UserStatisticsMapper">
+
+    <resultMap id="BaseResultMap" type="com.tech.novagraphbackendmodel.user.entity.UserStatistics">
+            <id property="id" column="id" />
+            <result property="userId" column="userId" />
+            <result property="userScore" column="userScore" />
+            <result property="thumbCount" column="thumbCount" />
+            <result property="favoriteCount" column="favoriteCount" />
+            <result property="followingCount" column="followingCount" />
+            <result property="followerCount" column="followerCount" />
+            <result property="editTime" column="editTime" />
+            <result property="createTime" column="createTime" />
+            <result property="updateTime" column="updateTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,userScore,thumbCount,favoriteCount,followingCount,
+        followerCount,editTime,createTime,updateTime,isDelete
+    </sql>
+</mapper>
