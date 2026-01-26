@@ -235,7 +235,7 @@ create table if not exists user_favorite_folder
 ) comment '用户收藏夹' collate = utf8mb4_unicode_ci;
 
 -- 用户收藏
-create table if not exists user_favorite_folder
+create table if not exists user_favorite
 (
     id           bigint auto_increment comment 'id' primary key,
     userId       bigint                                 not null comment '用户 id',
@@ -271,7 +271,7 @@ CREATE TABLE user_post (
 ) comment '用户动态表' collate = utf8mb4_unicode_ci;
 
 -- 动态评论
-create table if not exists screenplay_comment(
+create table if not exists post_comment(
      id           bigint auto_increment primary key,
      userId       bigint                                 not null comment '用户 id',
      postId       bigint                                 not null comment '动态 id',
@@ -287,7 +287,7 @@ create table if not exists screenplay_comment(
      INDEX idx_postId_target (postId, targetId), -- 优化直接评论查询
      INDEX idx_target_time (targetId, createTime), -- 优化子评论查询
      INDEX idx_postId (postId)       -- 提升基于动态 ID 的查询效率
-)comment '剧本评论表' collate = utf8mb4_unicode_ci;
+)comment '动态评论表' collate = utf8mb4_unicode_ci;
 
 -- 动态统计数据 方便动态数据在缓存上使用不同方案
 create table if not exists user_post_statistics
