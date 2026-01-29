@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 
 @Slf4j
 @Component
-@ConditionalOnBean(RedisConnectionFactory.class)
+@ConditionalOnClass(RedisTemplate.class)
 public class PageCacheTemplate {
 
     /**

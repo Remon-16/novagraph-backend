@@ -12,8 +12,8 @@ import com.tech.novagraphbackendcommon.utils.CacheUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 
 @Slf4j
 @Component
-@ConditionalOnBean(RedisConnectionFactory.class)
+@ConditionalOnClass(RedisTemplate.class)
 public class CommentPageCacheTemplate extends PageCacheTemplate {
 
     @Resource
