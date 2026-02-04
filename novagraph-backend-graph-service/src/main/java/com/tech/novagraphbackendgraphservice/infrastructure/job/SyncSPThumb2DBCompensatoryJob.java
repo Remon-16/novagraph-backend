@@ -2,6 +2,8 @@ package com.tech.novagraphbackendgraphservice.infrastructure.job;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
+import com.tech.novagraphbackendcommon.cache.RedisSyncTemplate;
+import com.tech.novagraphbackendgraphservice.infrastructure.manager.handler.ThumbSPHandler;
 import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,10 @@ public class SyncSPThumb2DBCompensatoryJob {
     private RedisTemplate<String, Object> redisTemplate;
 
     @Resource
-    private SyncSPThumb2DBJob syncSPThumb2DBJob;
+    private RedisSyncTemplate redisSyncTemplate;
+
+    @Resource
+    private ThumbSPHandler thumbSPHandler;
 
     @Scheduled(cron = "0 0 2 * * *")
     public void run() {
@@ -37,7 +42,7 @@ public class SyncSPThumb2DBCompensatoryJob {
         }
         // 补偿数据
         for (String date : needHandleDataSet) {
-            syncSPThumb2DBJob.syncThumb2DBByDate(date);
+            redisSyncTemplate.executeSync(thumbSPHandler, date);
         }
         log.info("临时数据补偿完成");
     }

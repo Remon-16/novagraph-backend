@@ -14,4 +14,16 @@
     <sql id="Base_Column_List">
         id,userId,screenplayId,createTime
     </sql>
+    <insert id="batchIgnoreInsert">
+        INSERT IGNORE INTO screenplay_thumb (
+        userId,
+        screenplayId
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.screenplayId},
+            )
+        </foreach>
+    </insert>
 </mapper>

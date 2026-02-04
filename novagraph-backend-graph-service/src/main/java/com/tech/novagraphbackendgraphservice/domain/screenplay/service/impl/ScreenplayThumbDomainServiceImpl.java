@@ -11,8 +11,8 @@ import com.tech.novagraphbackendmodel.dto.graph.DoThumbRequest;
 import com.tech.novagraphbackendmodel.graph.constant.RedisLuaScriptConstant;
 import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
-import com.tech.novagraphbackendmodel.graph.valueobject.LuaStatusEnum;
-import com.tech.novagraphbackendmodel.graph.valueobject.ThumbTypeEnum;
+import com.tech.novagraphbackendcommon.cache.valueobject.LuaStatusEnum;
+import com.tech.novagraphbackendcommon.cache.valueobject.UserActionEnum;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import jakarta.annotation.Resource;
@@ -58,7 +58,7 @@ public class ScreenplayThumbDomainServiceImpl extends ServiceImpl<ScreenplayThum
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户已点赞");
         }
         // 如果存在本地缓存，则写入
-        putCaffineIfPresent(loginUser, screenplayId, ThumbTypeEnum.INCR.getValue());
+        putCaffineIfPresent(loginUser, screenplayId, UserActionEnum.INCR.getValue());
 
         // 更新成功才执行
         return LuaStatusEnum.SUCCESS.getValue() == result;
@@ -91,7 +91,7 @@ public class ScreenplayThumbDomainServiceImpl extends ServiceImpl<ScreenplayThum
         }
 
         // 如果存在本地缓存，则写入
-        putCaffineIfPresent(loginUser, screenplayId, ThumbTypeEnum.DECR.getValue());
+        putCaffineIfPresent(loginUser, screenplayId, UserActionEnum.DECR.getValue());
 
         return LuaStatusEnum.SUCCESS.getValue() == result;
     }

@@ -1,4 +1,4 @@
-package com.tech.novagraphbackendmodel.graph.valueobject;
+package com.tech.novagraphbackendcommon.cache.valueobject;
 
 import lombok.Getter;
 
