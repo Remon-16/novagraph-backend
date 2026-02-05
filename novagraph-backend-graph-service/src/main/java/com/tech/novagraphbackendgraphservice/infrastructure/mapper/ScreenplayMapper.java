@@ -13,7 +13,6 @@ import java.util.Map;
 * @Entity com.tech.novagraphbackendmodel.graph.entity.Screenplay
 */
 public interface ScreenplayMapper extends BaseMapper<Screenplay> {
-    void batchUpdateThumbCount(@Param("countMap") Map<Long, Long> countMap);
 }
 
 

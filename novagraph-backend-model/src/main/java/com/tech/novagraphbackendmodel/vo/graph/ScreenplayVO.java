@@ -54,6 +54,11 @@ public class ScreenplayVO {
     private Long userId;
 
     /**
+     * 用户是否对该内容点赞
+     */
+    private Boolean hasThumb;
+
+    /**
      * 编辑时间
      */
     private Date editTime;

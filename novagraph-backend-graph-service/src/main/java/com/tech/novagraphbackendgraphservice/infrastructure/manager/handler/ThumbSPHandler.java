@@ -2,7 +2,7 @@ package com.tech.novagraphbackendgraphservice.infrastructure.manager.handler;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tech.novagraphbackendcommon.handler.IUserActionSyncHandler;
-import com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayMapper;
+import com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayStatisticsMapper;
 import com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayThumbMapper;
 import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
@@ -20,7 +20,7 @@ public class ThumbSPHandler implements IUserActionSyncHandler<ScreenplayThumb> {
     private ScreenplayThumbMapper screenplayThumbMapper;
 
     @Resource
-    private ScreenplayMapper screenplayMapper;
+    private ScreenplayStatisticsMapper screenplayStatisticsMapper;
 
     @Override
     public String getRedisKeyPrefix() {
@@ -64,7 +64,7 @@ public class ThumbSPHandler implements IUserActionSyncHandler<ScreenplayThumb> {
 
     @Override
     public void updateStatistics(Map<Long, Long> countMap) {
-        screenplayMapper.batchUpdateThumbCount(countMap);
+        screenplayStatisticsMapper.batchUpdateThumbCount(countMap);
     }
 
     @Override

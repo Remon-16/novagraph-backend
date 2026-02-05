@@ -19,7 +19,7 @@
         userId,
         screenplayId
         ) VALUES
-        <foreach collection="list" item="item" separator=",">
+        <foreach collection="thumbs" item="item" separator=",">
             (
             #{item.userId},
             #{item.screenplayId},

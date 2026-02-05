@@ -2,6 +2,9 @@ package com.tech.novagraphbackenduserservice.infrastructure.mapper;
 
 import com.tech.novagraphbackendmodel.user.entity.UserPostStatistics;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Map;
 
 /**
 * @author Remon
@@ -10,7 +13,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.tech.novagraphbackendmodel.user.entity.UserPostStatistics
 */
 public interface UserPostStatisticsMapper extends BaseMapper<UserPostStatistics> {
-
+    void batchUpdateThumbCount(@Param("countMap") Map<Long, Long> countMap);
 }
 
 

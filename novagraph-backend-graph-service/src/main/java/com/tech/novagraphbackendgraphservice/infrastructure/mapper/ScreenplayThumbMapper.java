@@ -2,6 +2,7 @@ package com.tech.novagraphbackendgraphservice.infrastructure.mapper;
 
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 * @Entity com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb
 */
 public interface ScreenplayThumbMapper extends BaseMapper<ScreenplayThumb> {
-    void batchIgnoreInsert(List<ScreenplayThumb> thumbs);
+    void batchIgnoreInsert(@Param("thumbs") List<ScreenplayThumb> thumbs);
 }
 
 

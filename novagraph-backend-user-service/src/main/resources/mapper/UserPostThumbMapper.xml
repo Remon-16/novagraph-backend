@@ -14,4 +14,17 @@
     <sql id="Base_Column_List">
         id,userId,postId,createTime
     </sql>
+
+    <insert id="batchIgnoreInsert">
+        INSERT IGNORE INTO user_post_thumb (
+        userId,
+        postId
+        ) VALUES
+        <foreach collection="thumbs" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.postId},
+            )
+        </foreach>
+    </insert>
 </mapper>
