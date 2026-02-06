@@ -10,7 +10,7 @@ public class RedisLuaScriptConstant {
      * KEYS[1]       -- 临时计数键
      * KEYS[2]       -- 用户点赞状态键
      * ARGV[1]       -- 用户 ID
-     * ARGV[2]       -- 博客 ID
+     * ARGV[2]       -- 剧本 ID
      * 返回:
      * -1: 已点赞
      * 1: 操作成功

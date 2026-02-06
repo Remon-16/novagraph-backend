@@ -21,8 +21,21 @@
         createTime,updateTime,isDelete
     </sql>
     <update id="batchUpdateThumbCount">
-        UPDATE screenplay
+        UPDATE screenplay_statistics
         SET thumbCount = thumbCount + CASE id
+        <foreach collection="countMap.entrySet()" item="value" index="key">
+            WHEN #{key} THEN #{value}
+        </foreach>
+        END
+        WHERE screenplayId IN
+        <foreach collection="countMap.keySet()" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdatePlayCount">
+        UPDATE screenplay_statistics
+        SET playCount = playCount + CASE id
         <foreach collection="countMap.entrySet()" item="value" index="key">
             WHEN #{key} THEN #{value}
         </foreach>

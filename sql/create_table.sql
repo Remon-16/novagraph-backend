@@ -160,8 +160,8 @@ create table if not exists user_follow
 (
     id           bigint auto_increment comment 'id' primary key,
     userId       bigint                                 not null comment '用户 id',
-    following_id bigint                                 null comment '用户的关注',
-    follower_id  bigint                                 null comment '用户的粉丝',
+    followingId  bigint                                 null comment '用户的关注',
+    followerId   bigint                                 null comment '用户的粉丝',
     editTime     datetime     default CURRENT_TIMESTAMP not null comment '编辑时间',
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',

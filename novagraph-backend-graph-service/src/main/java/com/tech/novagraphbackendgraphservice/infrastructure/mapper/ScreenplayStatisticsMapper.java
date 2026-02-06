@@ -14,6 +14,8 @@ import java.util.Map;
 */
 public interface ScreenplayStatisticsMapper extends BaseMapper<ScreenplayStatistics> {
     void batchUpdateThumbCount(@Param("countMap") Map<Long, Long> countMap);
+
+    void batchUpdatePlayCount(@Param("countMap") Map<Long, Long> countMap);
 }
 
 

@@ -28,12 +28,12 @@ public class UserFollow implements Serializable {
     /**
      * 用户的关注
      */
-    private Long following_id;
+    private Long followingId;
 
     /**
      * 用户的粉丝
      */
-    private Long follower_id;
+    private Long followerId;
 
     /**
      * 编辑时间

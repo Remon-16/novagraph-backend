@@ -18,4 +18,16 @@
         id,userId,screenplayId,editTime,createTime,updateTime,
         isDelete
     </sql>
+    <insert id="batchIgnoreInsert">
+        INSERT IGNORE INTO user_play_history (
+        userId,
+        screenplayId
+        ) VALUES
+        <foreach collection="userPlayHistories" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.screenplayId},
+            )
+        </foreach>
+    </insert>
 </mapper>

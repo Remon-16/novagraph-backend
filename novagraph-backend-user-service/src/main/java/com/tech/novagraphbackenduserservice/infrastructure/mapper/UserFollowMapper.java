@@ -2,6 +2,9 @@ package com.tech.novagraphbackenduserservice.infrastructure.mapper;
 
 import com.tech.novagraphbackendmodel.user.entity.UserFollow;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
 * @author Remon
@@ -10,7 +13,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.tech.novagraphbackendmodel.user.entity.UserFollow
 */
 public interface UserFollowMapper extends BaseMapper<UserFollow> {
-
+    void batchIgnoreInsert(@Param("userFollows")List<UserFollow> userFollows);
 }
 
 

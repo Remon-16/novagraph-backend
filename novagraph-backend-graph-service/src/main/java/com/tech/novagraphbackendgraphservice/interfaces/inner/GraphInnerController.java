@@ -3,6 +3,7 @@ package com.tech.novagraphbackendgraphservice.interfaces.inner;
 import com.tech.novagraphbackendgraphservice.application.picture.PictureApplicationService;
 import com.tech.novagraphbackendgraphservice.application.screenplay.ScreenplayApplicationService;
 import com.tech.novagraphbackendgraphservice.application.screenplay.ScreenplayCommentApplicationService;
+import com.tech.novagraphbackendgraphservice.application.screenplay.ScreenplayStatisticsApplicationService;
 import com.tech.novagraphbackendgraphservice.application.screenplay.ScreenplayThumbApplicationService;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayComment;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/picture/inner")
@@ -26,6 +29,9 @@ public class GraphInnerController implements GraphFeignClient {
 
     @Resource
     private ScreenplayCommentApplicationService screenplayCommentApplicationService;
+
+    @Resource
+    private ScreenplayStatisticsApplicationService screenplayStatisticsApplicationService;
 
     /**
      * 用户上传头像
@@ -47,5 +53,10 @@ public class GraphInnerController implements GraphFeignClient {
     @GetMapping("/screenplayComment/get/id")
     public ScreenplayComment getScreenplayCommentById(Long commentId) {
         return screenplayCommentApplicationService.getById(commentId);
+    }
+
+    @Override
+    public void batchUpdatePlayCount(Map<Long, Long> countMap) {
+        screenplayStatisticsApplicationService.playCountAdd(countMap);
     }
 }

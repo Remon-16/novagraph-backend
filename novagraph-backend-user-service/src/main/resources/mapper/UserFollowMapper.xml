@@ -7,8 +7,8 @@
     <resultMap id="BaseResultMap" type="com.tech.novagraphbackendmodel.user.entity.UserFollow">
             <id property="id" column="id" />
             <result property="userId" column="userId" />
-            <result property="following_id" column="following_id" />
-            <result property="follower_id" column="follower_id" />
+            <result property="followingId" column="followingId" />
+            <result property="followerId" column="followerId" />
             <result property="editTime" column="editTime" />
             <result property="createTime" column="createTime" />
             <result property="updateTime" column="updateTime" />
@@ -16,7 +16,19 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,userId,following_id,follower_id,editTime,createTime,
+        id,userId,followingId,followerId,editTime,createTime,
         updateTime,isDelete
     </sql>
+    <insert id="batchIgnoreInsert">
+        INSERT IGNORE INTO user_follow (
+        userId,
+        followingId,
+        ) VALUES
+        <foreach collection="userFollows" item="item" separator=",">
+        (
+        #{item.userId},
+        #{item.followingId},
+        )
+        </foreach>
+    </insert>
 </mapper>

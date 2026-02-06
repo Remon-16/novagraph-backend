@@ -8,7 +8,6 @@ import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.utils.CacheUtils;
 import com.tech.novagraphbackendmodel.dto.user.PostThumbRequest;
-import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import com.tech.novagraphbackendmodel.user.constant.UserCacheConstant;
 import com.tech.novagraphbackendmodel.user.constant.UserRedisLuaScriptConstant;
 import com.tech.novagraphbackendmodel.user.entity.User;
@@ -112,6 +111,6 @@ public class UserPostThumbDomainServiceImpl extends ServiceImpl<UserPostThumbMap
         String hashKey = UserCacheConstant.USER_POST_THUMB_KEY_PREFIX + loginUser.getId();
         String fieldKey = postId.toString();
         cacheManager.putIfPresentLocalHash(hashKey, fieldKey, thumbState);
-        cacheManager.putThumbCountIfPresentLocal(ScreenplayCacheConstant.getScreenplayCacheKey(fieldKey), thumbState);
+        cacheManager.putThumbCountIfPresentLocal(UserCacheConstant.getPostCacheKey(fieldKey), thumbState);
     }
 }

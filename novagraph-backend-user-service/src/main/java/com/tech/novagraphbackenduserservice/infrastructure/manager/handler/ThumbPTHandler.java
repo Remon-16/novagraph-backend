@@ -16,6 +16,7 @@ import java.util.Set;
 @Component
 public class ThumbPTHandler implements IUserActionSyncHandler<UserPostThumb> {
 
+    @Resource
     private UserPostStatisticsMapper userPostStatisticsMapper;
 
     @Resource

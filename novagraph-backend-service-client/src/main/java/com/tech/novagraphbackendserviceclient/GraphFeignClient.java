@@ -4,18 +4,16 @@ import com.tech.novagraphbackendmodel.graph.entity.ScreenplayComment;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @FeignClient(name = "novagraph-backend-graph-service", path = "/api/graph/inner")
 public interface GraphFeignClient {
 
     /**
      * 用户上传头像
-     * @return
      */
     @PostMapping(value = "/upload_user_avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     String uploadUserAvatar(@RequestPart("file") MultipartFile multipartFile, @RequestParam("uploadPathPrefix") String uploadPathPrefix);
@@ -25,4 +23,7 @@ public interface GraphFeignClient {
 
     @GetMapping("/screenplayComment/get/id")
     ScreenplayComment getScreenplayCommentById(Long commentId);
+
+    @PostMapping("sPStatistics/batchUpdatePlayCount")
+    void batchUpdatePlayCount(@RequestBody Map<Long, Long> countMap);
 }
