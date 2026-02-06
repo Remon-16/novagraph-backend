@@ -38,6 +38,7 @@ public class RedisSyncTemplate {
         // 1. 数据分类容器
         // 统计增量
         Map<Long, Long> targetCountMap = new HashMap<>();
+        Map<Long, Long> OwnerCountMap = new HashMap<>();
         // 待插入实体
         List<T> insertList = new ArrayList<>();
         // 待删除记录的用户ID
@@ -60,6 +61,8 @@ public class RedisSyncTemplate {
 
             // 计算目标的增量
             targetCountMap.put(targetId, targetCountMap.getOrDefault(targetId, 0L) + type);
+            // 应用场景 例如 我增加 or 减少了多少个关注
+            OwnerCountMap.put(userId, OwnerCountMap.getOrDefault(userId, 0L) + type);
 
             if (type == UserActionEnum.INCR.getValue()) {
                 // 增加的逻辑

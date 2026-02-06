@@ -68,6 +68,11 @@ public class ThumbPTHandler implements IUserActionSyncHandler<UserPostThumb> {
     }
 
     @Override
+    public void updateOwnerStatistics(Map<Long, Long> countMap) {
+
+    }
+
+    @Override
     public Long getTargetOwnerId(Long targetId) {
         return 0L;
     }

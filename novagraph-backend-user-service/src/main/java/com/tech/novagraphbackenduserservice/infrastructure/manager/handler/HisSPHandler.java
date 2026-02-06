@@ -69,6 +69,11 @@ public class HisSPHandler implements IUserActionSyncHandler<UserPlayHistory> {
     }
 
     @Override
+    public void updateOwnerStatistics(Map<Long, Long> countMap) {
+
+    }
+
+    @Override
     public Long getTargetOwnerId(Long targetId) {
         return 0L;
     }

@@ -70,6 +70,11 @@ public class UserFollowHandler implements IUserActionSyncHandler<UserFollow> {
     }
 
     @Override
+    public void updateOwnerStatistics(Map<Long, Long> countMap) {
+        userStatisticsMapper.batchUpdateFollowingCount(countMap);
+    }
+
+    @Override
     public Long getTargetOwnerId(Long targetId) {
         return 0L;
     }

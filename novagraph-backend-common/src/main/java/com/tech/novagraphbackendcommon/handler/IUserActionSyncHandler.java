@@ -47,6 +47,12 @@ public interface IUserActionSyncHandler<T> {
      */
     void updateStatistics(Map<Long, Long> countMap);
 
+    /**
+     * 更新自身的统计数据
+     * @param countMap key: targetId, value: 增量
+     */
+    void updateOwnerStatistics(Map<Long, Long> countMap);
+
     // --- 以下是处理副作用（积分、消息）所需的抽象方法 ---
 
     /**
