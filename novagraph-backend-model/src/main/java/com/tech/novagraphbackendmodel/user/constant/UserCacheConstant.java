@@ -5,6 +5,20 @@ import com.tech.novagraphbackendcommon.utils.CacheUtils;
 public interface UserCacheConstant {
 
     /*
+     * 用户收藏相关
+     */
+
+    /**
+     * 用户收藏夹
+     */
+    String USER_FD_KEY_PREFIX = "user:fd:";
+
+    /**
+     * 用户收藏
+     */
+    String USER_FAVORITE_KEY_PREFIX = "user:favorite:";
+
+    /*
      * 用户动态点赞相关
      */
 
@@ -74,6 +88,17 @@ public interface UserCacheConstant {
     /*
      * 静态方法
      */
+
+    /*
+     * 用户收藏相关
+     */
+    static String getUserFdCache(String hex){
+        return USER_FD_KEY_PREFIX + hex;
+    }
+
+    static String getUserFavoriteKey(String hex){
+        return USER_FAVORITE_KEY_PREFIX + hex;
+    }
 
     /*
      * 动态点赞相关
