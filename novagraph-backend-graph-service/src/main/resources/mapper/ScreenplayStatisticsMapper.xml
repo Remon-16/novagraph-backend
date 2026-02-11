@@ -45,4 +45,17 @@
             #{id}
         </foreach>
     </update>
+
+    <update id="batchUpdateFavouriteCount">
+        UPDATE screenplay_statistics
+        SET favoriteCount = favoriteCount + CASE id
+        <foreach collection="countMap.entrySet()" item="value" index="key">
+            WHEN #{key} THEN #{value}
+        </foreach>
+        END
+        WHERE screenplayId IN
+        <foreach collection="countMap.keySet()" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

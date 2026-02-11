@@ -4,5 +4,18 @@ import lombok.Data;
 
 @Data
 public class UserFavoriteDelRequest {
-    private Long favoriteId;
+    /**
+     * 用户 id
+     */
+    private Long userId;
+
+    /**
+     * 收藏夹 id
+     */
+    private Long folderId;
+
+    /**
+     * 剧本 id
+     */
+    private Long screenplayId;
 }

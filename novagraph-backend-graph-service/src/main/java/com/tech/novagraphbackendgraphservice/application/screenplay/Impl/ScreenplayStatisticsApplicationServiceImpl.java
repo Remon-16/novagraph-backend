@@ -17,4 +17,9 @@ public class ScreenplayStatisticsApplicationServiceImpl implements ScreenplaySta
     public void playCountAdd(Map<Long, Long> countMap) {
         screenplayStatisticsDomainService.playCountAdd(countMap);
     }
+
+    @Override
+    public void favouriteCountUpdate(Map<Long, Long> countMap) {
+        screenplayStatisticsDomainService.favouriteCountUpdate(countMap);
+    }
 }

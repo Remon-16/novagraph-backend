@@ -26,4 +26,7 @@ public interface GraphFeignClient {
 
     @PostMapping("sPStatistics/batchUpdatePlayCount")
     void batchUpdatePlayCount(@RequestBody Map<Long, Long> countMap);
+    
+    @PostMapping("sPStatistics/batchUpdateFavourites")
+    void batchUpdateFavourites(@RequestBody Map<Long, Long> countMap);
 }

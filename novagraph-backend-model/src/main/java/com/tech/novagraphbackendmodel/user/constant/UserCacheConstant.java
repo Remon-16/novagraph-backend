@@ -14,6 +14,11 @@ public interface UserCacheConstant {
     String USER_FD_KEY_PREFIX = "user:fd:";
 
     /**
+     * 用户收藏临时
+     */
+    String TEMP_USER_FAVORITE_KEY_PREFIX = "user:favorite:temp:";
+
+    /**
      * 用户收藏
      */
     String USER_FAVORITE_KEY_PREFIX = "user:favorite:";
@@ -53,9 +58,14 @@ public interface UserCacheConstant {
     String TEMP_HIS_KEY_PREFIX = "usr:sp:his:temp:";
 
     /**
-     * 剧本播放历史技术
+     * 剧本播放历史 Key
      */
     String SP_HIS_KEY_PREFIX = "sp:his:";
+
+    /**
+     * 剧本收藏 Key
+     */
+    String SP_FAVORITE_KEY_PREFIX = "sp:favorite:";
 
     /*
      * 用户关注相关
@@ -96,8 +106,12 @@ public interface UserCacheConstant {
         return USER_FD_KEY_PREFIX + hex;
     }
 
-    static String getUserFavoriteKey(String hex){
-        return USER_FAVORITE_KEY_PREFIX + hex;
+    static String getUserFavoriteKey(Long userId){
+        return USER_FAVORITE_KEY_PREFIX + userId;
+    }
+
+    static String getTempUserFavoriteKey(String tail){
+        return TEMP_USER_FAVORITE_KEY_PREFIX + tail;
     }
 
     /*
@@ -132,6 +146,10 @@ public interface UserCacheConstant {
 
     static String getSpHisKey(String spId){
         return SP_HIS_KEY_PREFIX + spId;
+    }
+
+    static String getSpFavoriteKey(Long spId){
+        return SP_FAVORITE_KEY_PREFIX + spId;
     }
 
     /*

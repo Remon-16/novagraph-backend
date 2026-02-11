@@ -198,4 +198,85 @@ public class UserRedisLuaScriptConstant {
             
             return 1  -- 返回 1 表示成功
             """, Long.class);
+
+
+    /**
+     * 剧本收藏 Lua 脚本
+     * KEYS[1]       -- 临时计数键
+     * KEYS[2]       -- 用户点赞状态键
+     * ARGV[1]       -- 用户 ID
+     * ARGV[2]       -- 动态 ID
+     * 返回:
+     * -1: 已点赞
+     * 1: 操作成功
+     */
+    public static final RedisScript<Long> SP_FAVORITE_SCRIPT = new DefaultRedisScript<>("""
+            local tempKey = KEYS[1]       -- 临时计数键
+            local userFavoriteKey = KEYS[2]    -- 用户收藏状态键
+            local spFavoriteKey = KEYS[3]      -- 动态Id键
+            local userId = ARGV[1]             -- 用户 ID
+            local screenplayId = ARGV[2]       -- 动态 ID
+            local folderId = ARGV[3]           -- 收藏夹 ID
+            
+            local userHashKey = screenplayId  .. ':' .. folderId   -- 用户把剧本收藏到了哪个收藏夹
+            
+            
+            -- 1. 检查是否已点赞（避免重复操作）
+            if redis.call('HEXISTS', userFavoriteKey, userHashKey) == 1 then
+               return -1  -- 已点赞，返回 -1 表示失败
+            end
+            
+            -- 2. 获取旧值（不存在则默认为 0）
+            local hashKey = userId .. ':' .. userHashKey
+            local oldNumber = tonumber(redis.call('HGET', tempKey, hashKey) or 0)
+            local oldFavoriteCount = tonumber(redis.call('GET', spFavoriteKey) or 0)
+            
+            -- 3. 计算新值
+            local newNumber = oldNumber + 1
+            local newFavoriteCount = oldFavoriteCount + 1
+            
+            -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
+            redis.call('HSET', tempKey, hashKey, newNumber)
+            redis.call('SET', spFavoriteKey, newFavoriteCount)
+            redis.call('HSET', userFavoriteKey, userHashKey, 1)
+            return 1  -- 返回 1 表示成功
+            """, Long.class);
+
+    /**
+     * 剧本取消收藏 Lua 脚本
+     * 参数同上
+     * 返回：
+     * -1: 未收藏
+     * 1: 操作成功
+     */
+    public static final RedisScript<Long> SP_UNFAVORITE_SCRIPT = new DefaultRedisScript<>("""
+            local tempKey = KEYS[1]       -- 临时计数键
+            local userFavoriteKey = KEYS[2]    -- 用户收藏状态键
+            local spFavoriteKey = KEYS[3]      -- 动态Id键
+            local userId = ARGV[1]             -- 用户 ID
+            local screenplayId = ARGV[2]       -- 动态 ID
+            local folderId = ARGV[3]           -- 收藏夹 ID
+            
+            local userHashKey = screenplayId  .. ':' .. folderId   -- 用户把剧本收藏到了哪个收藏夹
+            
+            -- 1. 检查用户是否已收藏（若未点赞，直接返回失败）
+            if redis.call('HEXISTS', userFavoriteKey, userHashKey) ~= 1 then
+               return -1  -- 未收藏，返回 -1 表示失败
+            end
+            
+            -- 2. 获取当前临时计数（若不存在则默认为 0）
+            local hashKey = userId .. ':' .. userHashKey
+            local oldNumber = tonumber(redis.call('HGET', tempKey, hashKey) or 0)
+            local oldFavoriteCount = tonumber(redis.call('GET', spFavoriteKey) or 0)
+            -- 3. 计算新值并更新
+            local newNumber = oldNumber - 1
+            local newFavoriteCount = oldFavoriteCount - 1
+            
+            -- 4. 原子性操作：更新临时计数 + 删除用户点赞标记
+            redis.call('HSET', tempKey, hashKey, newNumber)
+            redis.call('SET', spFavoriteKey, newFavoriteCount)
+            redis.call('HDEL', userFavoriteKey, userHashKey)
+            
+            return 1  -- 返回 1 表示成功
+            """, Long.class);
 }

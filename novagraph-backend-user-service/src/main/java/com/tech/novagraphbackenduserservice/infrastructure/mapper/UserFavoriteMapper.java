@@ -3,6 +3,8 @@ package com.tech.novagraphbackenduserservice.infrastructure.mapper;
 import com.tech.novagraphbackendmodel.user.entity.UserFavorite;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.List;
+
 /**
 * @author Remon
 * @description 针对表【user_favorite(用户收藏)】的数据库操作Mapper
@@ -10,7 +12,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.tech.novagraphbackendmodel.user.entity.UserFavorite
 */
 public interface UserFavoriteMapper extends BaseMapper<UserFavorite> {
-
+    void batchIgnoreInsert(List<UserFavorite> userFavorites);
 }
 
 

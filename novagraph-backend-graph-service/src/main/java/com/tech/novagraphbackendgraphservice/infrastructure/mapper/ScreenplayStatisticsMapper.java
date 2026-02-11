@@ -16,6 +16,8 @@ public interface ScreenplayStatisticsMapper extends BaseMapper<ScreenplayStatist
     void batchUpdateThumbCount(@Param("countMap") Map<Long, Long> countMap);
 
     void batchUpdatePlayCount(@Param("countMap") Map<Long, Long> countMap);
+
+    void batchUpdateFavouriteCount(@Param("countMap") Map<Long, Long> countMap);
 }
 
 

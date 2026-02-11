@@ -19,4 +19,18 @@
         id,userId,folderId,screenplayId,editTime,createTime,
         updateTime,isDelete
     </sql>
+    <insert id="batchIgnoreInsert">
+        INSERT IGNORE INTO user_favorite (
+        userId,
+        folderId,
+        screenplayId
+        ) VALUES
+        <foreach collection="userFavorites" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.folderId},
+            #{item.screenplayId},
+            )
+        </foreach>
+    </insert>
 </mapper>

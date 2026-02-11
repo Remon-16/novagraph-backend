@@ -59,4 +59,9 @@ public class GraphInnerController implements GraphFeignClient {
     public void batchUpdatePlayCount(Map<Long, Long> countMap) {
         screenplayStatisticsApplicationService.playCountAdd(countMap);
     }
+
+    @Override
+    public void batchUpdateFavourites(Map<Long, Long> countMap) {
+        screenplayStatisticsApplicationService.favouriteCountUpdate(countMap);
+    }
 }

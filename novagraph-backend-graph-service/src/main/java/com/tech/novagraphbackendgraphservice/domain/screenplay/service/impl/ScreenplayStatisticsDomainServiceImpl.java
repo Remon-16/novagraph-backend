@@ -20,4 +20,9 @@ public class ScreenplayStatisticsDomainServiceImpl extends ServiceImpl<Screenpla
     public void playCountAdd(Map<Long, Long> countMap) {
         screenplayStatisticsMapper.batchUpdatePlayCount(countMap);
     }
+
+    @Override
+    public void favouriteCountUpdate(Map<Long, Long> countMap) {
+        screenplayStatisticsMapper.batchUpdateFavouriteCount(countMap);
+    }
 }

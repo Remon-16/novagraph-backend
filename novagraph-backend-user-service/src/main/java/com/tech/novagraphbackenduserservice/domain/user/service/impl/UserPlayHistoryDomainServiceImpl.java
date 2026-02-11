@@ -45,7 +45,7 @@ public class UserPlayHistoryDomainServiceImpl extends ServiceImpl<UserPlayHistor
         String SPHisKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getSpHisKey(screenplayId.toString()));
 
         redisTemplate.execute(
-                UserRedisLuaScriptConstant.POST_THUMB_SCRIPT,
+                UserRedisLuaScriptConstant.SP_HIS_ADD_SCRIPT,
                 Arrays.asList(tempHisKey, userHisKey, SPHisKey),
                 loginUser.getId(),
                 screenplayId
