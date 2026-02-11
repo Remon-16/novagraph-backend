@@ -1,5 +1,6 @@
 package com.tech.novagraphbackenduserservice.domain.user.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tech.novagraphbackendcommon.cache.CacheManager;
 import com.tech.novagraphbackendcommon.cache.valueobject.LuaStatusEnum;
@@ -19,8 +20,8 @@ import jakarta.annotation.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserPostThumbDomainServiceImpl extends ServiceImpl<UserPostThumbMapper, UserPostThumb>
@@ -89,19 +90,70 @@ public class UserPostThumbDomainServiceImpl extends ServiceImpl<UserPostThumbMap
 
     @Override
     public Boolean hasThumb(Long postId, Long userId) {
-        Object thumbIdObj = cacheManager.getHashCache(
-                UserCacheConstant.USER_POST_THUMB_KEY_PREFIX + userId, postId.toString()
-        );
-        if (thumbIdObj == null) {
-            return false;
+        String userThumbKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserThumbKey(userId));
+        Boolean result = cacheManager.zSetUserActionHas(userThumbKey, postId);
+        if(result != null){
+            return result;
+        }else{
+            LambdaQueryWrapper<UserPostThumb> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.or().eq(UserPostThumb::getPostId, postId)
+                    .eq(UserPostThumb::getUserId, userId);
+            UserPostThumb userPostThumb = this.getOne(queryWrapper);
+            Boolean resDB = userPostThumb != null;
+            String v =  resDB? postId + CacheManager.getUSER_ACTION_HAS(): postId + CacheManager.getUSER_NO_ACTION_HAS();
+            Double score = (double) new Date().getTime();
+            cacheManager.zSetAdd(userThumbKey, v, score);
+            return resDB;
         }
-        Long thumbId = ((Number) thumbIdObj).longValue();
-        return !thumbId.equals(UserCacheConstant.UN_THUMB_CONSTANT);
     }
 
     @Override
     public List<UserPostVO> getPostThumbStatus(List<UserPostVO> userPostVOList, User loginUser) {
-        return List.of();
+        List<Long> postIdList = userPostVOList.stream().map(UserPostVO::getId).toList();
+        List<Boolean> hasThumbList = this.hasThumbBatch(postIdList, loginUser.getId());
+        int i = 0;
+        for(UserPostVO userPostVO : userPostVOList){
+            userPostVO.setHasThumb(hasThumbList.get(i));
+        }
+        return userPostVOList;
+    }
+
+    private List<Boolean> hasThumbBatch(List<Long> postIdList, Long userId){
+        String userThumbKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserThumbKey(userId));
+        List<Boolean> hasThumbBatch = new ArrayList<>(postIdList.size());
+        List<Integer> lossThumbList = new ArrayList<>();
+        int i = 0;
+        for (Long postId : postIdList) {
+            Boolean result = cacheManager.zSetUserActionHas(userThumbKey, postId);
+            if(result != null){
+                hasThumbBatch.add(i, result);
+            }else{
+                lossThumbList.add(i);
+            }
+            i++;
+        }
+        if(lossThumbList.isEmpty()){
+            return hasThumbBatch;
+        }else{
+            LambdaQueryWrapper<UserPostThumb> queryWrapper = new LambdaQueryWrapper<>();
+            lossThumbList.forEach(lossThumb -> {
+                queryWrapper.or().eq(UserPostThumb::getPostId, lossThumb).eq(UserPostThumb::getUserId, userId);
+            });
+            List<UserPostThumb> resList = this.list(queryWrapper);
+            Set<String> existSet = resList.stream()
+                    .map(entity -> entity.getUserId() + "_" + entity.getPostId())
+                    .collect(Collectors.toSet());
+
+            lossThumbList.forEach(lossThumb -> {
+                Long lossThumbId = postIdList.get(lossThumb);
+                String k = userId + "_" + lossThumbId;
+                hasThumbBatch.add(lossThumb, existSet.contains(k));
+                String v =  existSet.contains(k)? lossThumbId + CacheManager.getUSER_ACTION_HAS(): lossThumbId + CacheManager.getUSER_NO_ACTION_HAS();
+                Double score = (double) new Date().getTime();
+                cacheManager.zSetAdd(userThumbKey, v, score);
+            });
+            return hasThumbBatch;
+        }
     }
 
     private void putCaffineIfPresent(User loginUser, Long postId, Integer thumbState){

@@ -21,6 +21,8 @@ public class RedisLuaScriptConstant {
             local screenplayKey = KEYS[3]       -- 剧本Id键（如 novagraph:sp:{screenplayId}）
             local userId = ARGV[1]             -- 用户 ID
             local screenplayId = ARGV[2]             -- 剧本 ID
+            local score = ARGV[3]              --  score
+            local expTime = ARGV[4]             -- time
             
             -- 1. 检查是否已点赞（避免重复操作）
             if redis.call('HEXISTS', userThumbKey, screenplayId) == 1 then
@@ -39,7 +41,11 @@ public class RedisLuaScriptConstant {
             -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempThumbKey, hashKey, newNumber)
             redis.call('SET', screenplayKey, newThumbCount)
-            redis.call('HSET', userThumbKey, screenplayId, 1)
+            redis.call('ZADD', userThumbKey, score, screenplayId .. '::' .. 1)
+            
+            redis.call('EXPIRE', screenplayKey, expTime)
+            redis.call('EXPIRE', userThumbKey, expTime)
+            
             return 1  -- 返回 1 表示成功
             """, Long.class);
 
@@ -56,6 +62,8 @@ public class RedisLuaScriptConstant {
             local screenplayKey = KEYS[3]     -- 剧本Id键（如 novagraph:sp:{screenplayId}）
             local userId = ARGV[1]            -- 用户 ID
             local screenplayId = ARGV[2]      -- 剧本 ID
+            local expTime = ARGV[3]             -- time
+            
             -- 1. 检查用户是否已点赞（若未点赞，直接返回失败）
             if redis.call('HEXISTS', userThumbKey, screenplayId) ~= 1 then
                return -1  -- 未点赞，返回 -1 表示失败
@@ -72,7 +80,10 @@ public class RedisLuaScriptConstant {
             -- 4. 原子性操作：更新临时计数 + 删除用户点赞标记
             redis.call('HSET', tempThumbKey, hashKey, newNumber)
             redis.call('SET', screenplayKey, newThumbCount)
-            redis.call('HDEL', userThumbKey, screenplayId)
+            redis.call('ZADD', userThumbKey, score, screenplayId .. '::' .. 0)
+            
+            redis.call('EXPIRE', screenplayKey, expTime)
+            redis.call('EXPIRE', userThumbKey, expTime)
             
             return 1  -- 返回 1 表示成功
             """, Long.class);

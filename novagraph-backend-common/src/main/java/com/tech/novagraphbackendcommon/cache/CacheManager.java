@@ -13,6 +13,7 @@ import com.tech.novagraphbackendcommon.utils.CacheUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -68,6 +69,16 @@ public class CacheManager {
     private final Integer Entry_DELETE_FLAG = 1;
 
     private static final String DESC = "descend";
+
+    private static final String ASC = "ascend";
+    /**
+     * 用户是否做出了点赞、关注等
+     */
+    @Getter
+    private static final String USER_ACTION_HAS = "::1";
+    @Getter
+    private static final String USER_NO_ACTION_HAS = "::0";
+
 
     private final TopK hotKeyDetector = new HeavyKeeper(
             // 监控 Top 100 Key
@@ -240,6 +251,37 @@ public class CacheManager {
         }
     }
 
+    public Set<Object> zSetPageQuery(String key, Long page, Long size){
+        return this.zSetPageQuery(key, page, size, ASC);
+    }
+
+    public Set<Object> zSetPageQuery(String key, Long page, Long size, String order){
+        Set<Object> ValueSet = null;
+        if(DESC.equals(order)){
+            ValueSet = redisTemplate.opsForZSet().reverseRange(key, (page - 1) * size, page * size - 1);
+        }else{
+            // 默认升序
+            ValueSet = redisTemplate.opsForZSet().range(key, (page - 1) * size, page * size - 1);
+        }
+        return ValueSet;
+    }
+
+    public Boolean zSetUserActionHas(String key, Object member){
+        if(StringUtils.isEmpty(key) || member == null){
+            throw new RuntimeException("key == null || member == null");
+        }
+        if (!redisTemplate.hasKey(key)){
+            return null;
+        }
+        Double scoreHas = redisTemplate.opsForZSet().score(key, member + USER_ACTION_HAS);
+        Double scoreNoHas = redisTemplate.opsForZSet().score(key, member + USER_NO_ACTION_HAS);
+        if(scoreHas == null && scoreNoHas == null){
+            return null;
+        }
+        return scoreHas != null;
+    }
+
+
     public void insertSortedValue(String sortedKey, Object valueId, Double score, String valueKey, Object value) {
         this.zSetAdd(sortedKey, valueId, score);
         this.putValueToCache(valueKey, value, redisZSetExpireTime);
@@ -269,14 +311,7 @@ public class CacheManager {
         }
         // 2. 从zSet里查询id
         String zSetKey = buildRedisKey(sortedKey);
-        Set<Object> idSet = null;
-        if(DESC.equals(sortOrder)){
-            idSet = redisTemplate.opsForZSet().reverseRange(zSetKey, (page - 1) * size, page * size - 1);
-        }else{
-            // 默认升序
-            idSet = redisTemplate.opsForZSet().range(zSetKey, (page - 1) * size, page * size - 1);
-        }
-
+        Set<Object> idSet = this.zSetPageQuery(zSetKey, page, size, sortOrder);
         // 满足下列条件，直接返回一个空
         if (idSet == null || idSet.isEmpty() ||
                 (idSet.size() != size && !ZERO.equals(total - (page - 1) * size - idSet.size()))) {

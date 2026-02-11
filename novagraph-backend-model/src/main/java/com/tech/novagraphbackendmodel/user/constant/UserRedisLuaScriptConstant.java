@@ -21,6 +21,8 @@ public class UserRedisLuaScriptConstant {
             local postKey = KEYS[3]       -- 动态Id键（如 novagraph:sp:{postId}）
             local userId = ARGV[1]             -- 用户 ID
             local postId = ARGV[2]             -- 动态 ID
+            local score = ARGV[3]              --  score
+            local expTime = ARGV[4]             -- time
             
             -- 1. 检查是否已点赞（避免重复操作）
             if redis.call('HEXISTS', userThumbKey, postId) == 1 then
@@ -39,7 +41,11 @@ public class UserRedisLuaScriptConstant {
             -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempThumbKey, hashKey, newNumber)
             redis.call('SET', postKey, newThumbCount)
-            redis.call('HSET', userThumbKey, postId, 1)
+            redis.call('ZADD', userThumbKey, score, postId .. '::' .. 1)
+            
+            redis.call('EXPIRE', postKey, expTime)
+            redis.call('EXPIRE', userThumbKey, expTime)
+            
             return 1  -- 返回 1 表示成功
             """, Long.class);
 
@@ -56,6 +62,8 @@ public class UserRedisLuaScriptConstant {
             local postKey = KEYS[3]     -- 动态Id键（如 novagraph:sp:{postId}）
             local userId = ARGV[1]            -- 用户 ID
             local postId = ARGV[2]      -- 动态 ID
+            local expTime = ARGV[3]             -- time
+            
             -- 1. 检查用户是否已点赞（若未点赞，直接返回失败）
             if redis.call('HEXISTS', userThumbKey, postId) ~= 1 then
                return -1  -- 未点赞，返回 -1 表示失败
@@ -72,7 +80,10 @@ public class UserRedisLuaScriptConstant {
             -- 4. 原子性操作：更新临时计数 + 删除用户点赞标记
             redis.call('HSET', tempThumbKey, hashKey, newNumber)
             redis.call('SET', postKey, newThumbCount)
-            redis.call('HDEL', userThumbKey, postId)
+            redis.call('ZADD', userThumbKey, score, postId .. '::' .. 0)
+            
+            redis.call('EXPIRE', postKey, expTime)
+            redis.call('EXPIRE', userThumbKey, expTime)
             
             return 1  -- 返回 1 表示成功
             """, Long.class);
@@ -94,16 +105,18 @@ public class UserRedisLuaScriptConstant {
             local screenplayKey = KEYS[3]       -- 动态Id键（如 novagraph:sp:{postId}）
             local userId = ARGV[1]             -- 用户 ID
             local screenplayId = ARGV[2]             -- 动态 ID
+            local score = ARGV[3]              --  score
+            local expTime = ARGV[4]             -- time
             
             -- 1. 检查是否已点赞（避免重复操作）
-            if redis.call('HEXISTS', userThumbKey, postId) == 1 then
+            if redis.call('HEXISTS', userHisKey, postId) == 1 then
                return -1  -- 已点赞，返回 -1 表示失败
             end
             
             -- 2. 获取旧值（不存在则默认为 0）
             local hashKey = userId .. ':' .. postId
             local oldNumber = tonumber(redis.call('HGET', tempHisKey, hashKey) or 0)
-            local oldPlayCount = tonumber(redis.call('GET', postKey) or 0)
+            local oldPlayCount = tonumber(redis.call('GET', screenplayKey) or 0)
             
             -- 3. 计算新值
             local newNumber = oldNumber + 1
@@ -111,8 +124,12 @@ public class UserRedisLuaScriptConstant {
             
             -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempHisKey, hashKey, newNumber)
-            redis.call('SET', postKey, newPlayCount)
-            redis.call('HSET', userThumbKey, postId, 1)
+            redis.call('SET', screenplayKey, newPlayCount)
+            redis.call('ZADD', userHisKey, score, postId .. '::' .. 1)
+            
+            redis.call('EXPIRE', screenplayKey, expTime)
+            redis.call('EXPIRE', userHisKey, expTime)
+            
             return 1  -- 返回 1 表示成功
             """, Long.class);
 
@@ -131,6 +148,8 @@ public class UserRedisLuaScriptConstant {
             local followerKey = KEYS[5]         -- 粉丝数量（如 novagraph:flerc:{userId}）
             local userId = ARGV[1]              -- 用户 ID
             local targetUserId = ARGV[2]        -- 目标用户 ID
+            local score = ARGV[3]              --  score
+            local expTime = ARGV[4]             -- time
             
             -- 1. 检查是否已关注（避免重复操作）
             if redis.call('HEXISTS', userFollowingKey, targetUserId) == 1 then
@@ -151,9 +170,15 @@ public class UserRedisLuaScriptConstant {
             -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempFollowKey, hashKey, newNumber)
             redis.call('SET', followingKey, newFollowingCount)
-            redis.call('HSET', userFollowingKey, targetUserId, 1)
+            redis.call('ZADD', userFollowingKey, score, targetUserId .. '::' .. 1)
             redis.call('SET', followerKey, newFollowingCount)
-            redis.call('HSET', userFollowerKey, userId, 1)
+            redis.call('ZADD', userFollowerKey, score, userId .. '::' .. 1)
+            
+            redis.call('EXPIRE', followingKey, expTime)
+            redis.call('EXPIRE', userFollowingKey, expTime)
+            redis.call('EXPIRE', followerKey, expTime)
+            redis.call('EXPIRE', userFollowerKey, expTime)
+            
             return 1  -- 返回 1 表示成功
             """, Long.class);
 
@@ -172,6 +197,7 @@ public class UserRedisLuaScriptConstant {
             local followerKey = KEYS[5]         -- 粉丝数量（如 novagraph:flerc:{userId}）
             local userId = ARGV[1]              -- 用户 ID
             local targetUserId = ARGV[2]        -- 目标用户 ID
+            local expTime = ARGV[3]             -- time
             
             -- 1. 检查用户是否已点赞（若未点赞，直接返回失败）
             if redis.call('HEXISTS', userFollowingKey, targetUserId) ~= 1 then
@@ -192,9 +218,14 @@ public class UserRedisLuaScriptConstant {
             -- 4. 原子性操作：更新临时计数 + 删除用户点赞标记
             redis.call('HSET', tempFollowKey, hashKey, newNumber)
             redis.call('SET', followingKey, newFollowingCount)
-            redis.call('HDEL', userFollowingKey, targetUserId)
+            redis.call('ZADD', userFollowingKey, score, targetUserId .. '::' .. 0)
             redis.call('SET', followerKey, newFollowerCount)
-            redis.call('HDEL', userFollowerKey, userId)
+            redis.call('ZADD', userFollowerKey, score, userId .. '::' .. 0)
+            
+            redis.call('EXPIRE', followingKey, expTime)
+            redis.call('EXPIRE', followerKey, expTime)
+            redis.call('EXPIRE', userFollowingKey, expTime)
+            redis.call('EXPIRE', userFollowerKey, expTime)
             
             return 1  -- 返回 1 表示成功
             """, Long.class);
@@ -217,6 +248,8 @@ public class UserRedisLuaScriptConstant {
             local userId = ARGV[1]             -- 用户 ID
             local screenplayId = ARGV[2]       -- 动态 ID
             local folderId = ARGV[3]           -- 收藏夹 ID
+            local score = ARGV[4]              --  score
+            local expTime = ARGV[5]             -- time
             
             local userHashKey = screenplayId  .. ':' .. folderId   -- 用户把剧本收藏到了哪个收藏夹
             
@@ -238,7 +271,11 @@ public class UserRedisLuaScriptConstant {
             -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempKey, hashKey, newNumber)
             redis.call('SET', spFavoriteKey, newFavoriteCount)
-            redis.call('HSET', userFavoriteKey, userHashKey, 1)
+            redis.call('ZADD', userFavoriteKey, score, userHashKey .. '::' .. 1)
+            
+            redis.call('EXPIRE', spFavoriteKey, expTime)
+            redis.call('EXPIRE', userFavoriteKey, expTime)
+            
             return 1  -- 返回 1 表示成功
             """, Long.class);
 
@@ -256,6 +293,7 @@ public class UserRedisLuaScriptConstant {
             local userId = ARGV[1]             -- 用户 ID
             local screenplayId = ARGV[2]       -- 动态 ID
             local folderId = ARGV[3]           -- 收藏夹 ID
+            local expTime = ARGV[4]             -- time
             
             local userHashKey = screenplayId  .. ':' .. folderId   -- 用户把剧本收藏到了哪个收藏夹
             
@@ -275,7 +313,10 @@ public class UserRedisLuaScriptConstant {
             -- 4. 原子性操作：更新临时计数 + 删除用户点赞标记
             redis.call('HSET', tempKey, hashKey, newNumber)
             redis.call('SET', spFavoriteKey, newFavoriteCount)
-            redis.call('HDEL', userFavoriteKey, userHashKey)
+            redis.call('ZADD', userFavoriteKey, score, userHashKey .. '::' .. 0)
+            
+            redis.call('EXPIRE', spFavoriteKey, expTime)
+            redis.call('EXPIRE', userFavoriteKey, expTime)
             
             return 1  -- 返回 1 表示成功
             """, Long.class);
