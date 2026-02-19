@@ -7,6 +7,7 @@ import com.tech.novagraphbackendgraphservice.application.screenplay.ScreenplaySt
 import com.tech.novagraphbackendgraphservice.application.screenplay.ScreenplayThumbApplicationService;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayComment;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
+import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import com.tech.novagraphbackendserviceclient.GraphFeignClient;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +34,9 @@ public class GraphInnerController implements GraphFeignClient {
     @Resource
     private ScreenplayStatisticsApplicationService screenplayStatisticsApplicationService;
 
+    @Resource
+    private ScreenplayApplicationService screenplayApplicationService;
+
     /**
      * 用户上传头像
      * @return
@@ -56,12 +60,20 @@ public class GraphInnerController implements GraphFeignClient {
     }
 
     @Override
+    @PostMapping("sPStatistics/batchUpdatePlayCount")
     public void batchUpdatePlayCount(Map<Long, Long> countMap) {
         screenplayStatisticsApplicationService.playCountAdd(countMap);
     }
 
     @Override
+    @PostMapping("sPStatistics/batchUpdateFavourites")
     public void batchUpdateFavourites(Map<Long, Long> countMap) {
         screenplayStatisticsApplicationService.favouriteCountUpdate(countMap);
+    }
+
+    @Override
+    @GetMapping("/sp/get/id")
+    public ScreenplayVO getScreenplayById(Long id) {
+        return screenplayApplicationService.queryScreenplayById(id);
     }
 }

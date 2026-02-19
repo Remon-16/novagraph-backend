@@ -5,8 +5,10 @@ import com.tech.novagraphbackendmodel.graph.entity.Screenplay;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class ScreenplayVO {
@@ -85,5 +87,9 @@ public class ScreenplayVO {
             screenplayVO.setTags(List.of());
         }
         return screenplayVO;
+    }
+
+    public static List<ScreenplayVO> listObjToVo(List<Screenplay> screenplayList){
+        return screenplayList.stream().map(ScreenplayVO::objToVo).toList();
     }
 }

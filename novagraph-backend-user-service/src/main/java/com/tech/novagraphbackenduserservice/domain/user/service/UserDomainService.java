@@ -50,6 +50,8 @@ public interface UserDomainService extends IService<User> {
 
     List<User> listByIds(Set<Long> userIdSet);
 
+    UserVO getUserVOById(Long id);
+
     boolean updateUserAvatar(MultipartFile avatar, UserUpdateInfoRequest userUpdateInfoRequest, User loginUser);
 
     /**

@@ -13,7 +13,7 @@ public class ScreenplayQueryRequest extends PageRequest {
 
     private Long userId;
 
-
+    private Long id;
     /**
      * 剧本名称
      */

@@ -6,6 +6,8 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tech.novagraphbackendcommon.cache.ValuePageCacheTemplate;
+import com.tech.novagraphbackendcommon.cache.bean.ValueQueryBean;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendgraphservice.domain.screenplay.repository.ScreenplayRepository;
@@ -29,7 +31,10 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
         implements ScreenplayDomainService {
 
     @Resource
-    ScreenplayRepository screenplayRepository;
+    private ScreenplayRepository screenplayRepository;
+
+    @Resource
+    private ValuePageCacheTemplate valuePageCacheTemplate;
 
     @Override
     public Screenplay addScreenplay(ScreenplayAddRequest screenplayAddRequest) {
@@ -52,8 +57,18 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
     @Override
     public ScreenplayVO queryScreenplayById(Long id) {
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "ID不能为空");
-        Screenplay screenplay = screenplayRepository.getById(id);
-        return ScreenplayVO.objToVo(screenplay);
+        String cacheKey = StrUtil.format("screenplay:{}", id);
+        ValueQueryBean valueQueryBean = new ValueQueryBean();
+        valueQueryBean.setCacheKey(cacheKey);
+        valueQueryBean.setVOClass(ScreenplayVO.class);
+        ScreenplayQueryRequest screenplayQueryRequest = new ScreenplayQueryRequest();
+        screenplayQueryRequest.setId(id);
+
+        Page<ScreenplayVO> page = valuePageCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
+                () -> this.page(new Page<>(1, 10), this.getQueryWrapper(screenplayQueryRequest)),
+                ScreenplayVO::listObjToVo);
+
+        return page.getRecords().getFirst();
     }
 
     private QueryWrapper<Screenplay> getQueryWrapper(ScreenplayQueryRequest screenplayQueryRequest) {

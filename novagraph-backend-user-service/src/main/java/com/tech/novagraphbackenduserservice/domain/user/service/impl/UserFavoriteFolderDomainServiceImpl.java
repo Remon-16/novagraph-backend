@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tech.novagraphbackendcommon.cache.CacheManager;
 import com.tech.novagraphbackendcommon.cache.ValuePageCacheTemplate;
 import com.tech.novagraphbackendcommon.cache.bean.ValueQueryBean;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
@@ -31,6 +32,9 @@ public class UserFavoriteFolderDomainServiceImpl extends ServiceImpl<UserFavorit
     @Resource
     private ValuePageCacheTemplate valuePageCacheTemplate;
 
+    @Resource
+    private CacheManager cacheManager;
+
     @Override
     public void addUserFavoriteFolder(UserAddFavoriteFolderRequest userAddFavoriteFolderRequest) {
         ThrowUtils.throwIf(userAddFavoriteFolderRequest == null, new BusinessException(ErrorCode.PARAMS_ERROR));
@@ -50,7 +54,6 @@ public class UserFavoriteFolderDomainServiceImpl extends ServiceImpl<UserFavorit
 
     @Override
     public Page<UserFavoriteFolderVO> getUserFavoriteFolderVOList(FavoriteFolderQueryRequest queryRequest) {
-        Long userId = queryRequest.getUserId();
         int size = queryRequest.getPageSize();
         int current = queryRequest.getCurrent();
 
@@ -62,6 +65,46 @@ public class UserFavoriteFolderDomainServiceImpl extends ServiceImpl<UserFavorit
         return valuePageCacheTemplate.valueQuery(queryRequest, valueQueryBean,
                 () -> this.page(new Page<>(current, size), this.getQueryWrapper(queryRequest)),
                 UserFavoriteFolderVO::listObjToVo);
+    }
+
+    @Override
+    public String getFolderNameById(Long id, Long userId) {
+        UserFavoriteFolder userFavoriteFolder = this.getUserFavoriteFolderById(id, userId);
+        return userFavoriteFolder.getFolderName();
+    }
+
+    @Override
+    public UserFavoriteFolder getUserFavoriteFolderById(Long id, Long userId) {
+        String hashKey = UserCacheConstant.getUserFavoriteFolderKey(userId);
+        Object v = cacheManager.getHashCache(hashKey, String.valueOf(id));
+        if (v instanceof UserFavoriteFolder) {
+            return (UserFavoriteFolder) v;
+        }
+        throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+    }
+
+    @Override
+    public List<UserFavoriteFolder> getUserFavoriteFolderList(Long userId) {
+        ThrowUtils.throwIf(userId == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        FavoriteFolderQueryRequest queryRequest = new FavoriteFolderQueryRequest();
+        QueryWrapper<UserFavoriteFolder> queryWrapper = this.getQueryWrapper(queryRequest);
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public void putUserFavoriteFolderToCache(List<UserFavoriteFolder> userFavoriteFolderList, Long userId) {
+        String key = UserCacheConstant.getUserFavoriteFolderKey(userId);
+        userFavoriteFolderList.forEach(userFavoriteFolder -> {
+            cacheManager.putObjectToHash(key, String.valueOf(userFavoriteFolder.getId()),
+                    userFavoriteFolder, cacheManager.getOneMonth());
+        });
+    }
+
+    @Override
+    public void putUserFavoriteFolderToCache(Long userId) {
+        ThrowUtils.throwIf(userId == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        List<UserFavoriteFolder> userFavoriteFolderList = this.getUserFavoriteFolderList(userId);
+        this.putUserFavoriteFolderToCache(userFavoriteFolderList, userId);
     }
 
     private QueryWrapper<UserFavoriteFolder> getQueryWrapper(FavoriteFolderQueryRequest queryRequest){

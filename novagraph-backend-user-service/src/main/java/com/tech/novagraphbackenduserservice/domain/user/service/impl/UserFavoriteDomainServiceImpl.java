@@ -1,34 +1,36 @@
 package com.tech.novagraphbackenduserservice.domain.user.service.impl;
 
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tech.novagraphbackendcommon.cache.CacheManager;
-import com.tech.novagraphbackendcommon.cache.ValuePageCacheTemplate;
-import com.tech.novagraphbackendcommon.cache.bean.ValueQueryBean;
 import com.tech.novagraphbackendcommon.cache.valueobject.LuaStatusEnum;
 import com.tech.novagraphbackendcommon.cache.valueobject.UserActionEnum;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendcommon.utils.CacheUtils;
+import com.tech.novagraphbackendcommon.utils.ToolUtils;
 import com.tech.novagraphbackendmodel.dto.user.UserFavoriteAddRequest;
 import com.tech.novagraphbackendmodel.dto.user.UserFavoriteDelRequest;
 import com.tech.novagraphbackendmodel.dto.user.UserFavoriteQueryRequest;
 import com.tech.novagraphbackendmodel.user.constant.UserCacheConstant;
 import com.tech.novagraphbackendmodel.user.constant.UserRedisLuaScriptConstant;
-import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.user.entity.UserFavorite;
 import com.tech.novagraphbackendmodel.vo.user.UserFavoriteVO;
+import com.tech.novagraphbackendserviceclient.GraphFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserFavoriteDomainService;
+import com.tech.novagraphbackenduserservice.domain.user.service.UserFavoriteFolderDomainService;
 import com.tech.novagraphbackenduserservice.infrastructure.mapper.UserFavoriteMapper;
 import jakarta.annotation.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserFavoriteDomainServiceImpl extends ServiceImpl<UserFavoriteMapper, UserFavorite>
@@ -41,7 +43,10 @@ public class UserFavoriteDomainServiceImpl extends ServiceImpl<UserFavoriteMappe
     private CacheManager cacheManager;
 
     @Resource
-    private ValuePageCacheTemplate valuePageCacheTemplate;
+    private GraphFeignClient graphFeignClient;
+
+    @Resource
+    private UserFavoriteFolderDomainService userFavoriteFolderDomainService;
 
     @Override
     public void addUserFavorite(UserFavoriteAddRequest userFavoriteAddRequest) {
@@ -57,13 +62,20 @@ public class UserFavoriteDomainServiceImpl extends ServiceImpl<UserFavoriteMappe
         String tempKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getTempUserFavoriteKey(timeSlice));
         String userFavoriteKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserFavoriteKey(userId));
         String spFavoriteKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getSpFavoriteKey(screenplayId));
+        String userFavoriteTotalKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserFavoriteTotalKey(userId));
+
+        String now = ToolUtils.getNowTimeString();
+
+        Integer expireTime = cacheManager.getOneMonth();
 
         long result = redisTemplate.execute(
                 UserRedisLuaScriptConstant.SP_FAVORITE_SCRIPT,
-                Arrays.asList(tempKey, userFavoriteKey, spFavoriteKey),
+                Arrays.asList(tempKey, userFavoriteKey, spFavoriteKey, userFavoriteTotalKey),
                 userId,
                 screenplayId,
-                folderId
+                folderId,
+                now,
+                expireTime
         );
 
         putCaffineIfPresent(userId, screenplayId, folderId, UserActionEnum.INCR.getValue());
@@ -85,12 +97,15 @@ public class UserFavoriteDomainServiceImpl extends ServiceImpl<UserFavoriteMappe
         String userFavoriteKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserFavoriteKey(userId));
         String spFavoriteKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getSpFavoriteKey(screenplayId));
 
+        Integer expireTime = cacheManager.getOneMonth();
+
         long result = redisTemplate.execute(
                 UserRedisLuaScriptConstant.SP_UNFAVORITE_SCRIPT,
                 Arrays.asList(tempKey, userFavoriteKey, spFavoriteKey),
                 userId,
                 screenplayId,
-                folderId
+                folderId,
+                expireTime
         );
         putCaffineIfPresent(userId, screenplayId, folderId, UserActionEnum.DECR.getValue());
         ThrowUtils.throwIf(LuaStatusEnum.SUCCESS.getValue() != result, ErrorCode.SYSTEM_ERROR, "取消收藏失败，请稍后重试");
@@ -100,7 +115,57 @@ public class UserFavoriteDomainServiceImpl extends ServiceImpl<UserFavoriteMappe
     public Page<UserFavoriteVO> getUserFavoriteVOPage(UserFavoriteQueryRequest userFavoriteQueryRequest) {
         int size = userFavoriteQueryRequest.getPageSize();
         int current = userFavoriteQueryRequest.getCurrent();
-        return null;
+        Long userId = userFavoriteQueryRequest.getUserId();
+
+        String userFavoriteKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserFavoriteKey(userId));
+        String userFavoriteTotalKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserFavoriteTotalKey(userId));
+        Set<Object> values = cacheManager.zSetPageQuery(userFavoriteKey, (long) current, (long) size);
+        Object totalValue = cacheManager.getValueCache(userFavoriteTotalKey);
+        List<UserFavoriteVO> resList = new ArrayList<>();
+        values.forEach(value -> {
+            String stringValue = (String) value;
+            UserFavoriteVO userFavoriteVO = new UserFavoriteVO();
+            String[] splitStr = stringValue.split(":");
+            String screenplayIdStr = splitStr[0];
+            String folderIdStr = splitStr[1];
+            userFavoriteVO.setScreenplayId(Long.valueOf(screenplayIdStr));
+            userFavoriteVO.setScreenplayVo(graphFeignClient.getScreenplayById(Long.valueOf(screenplayIdStr)));
+            userFavoriteVO.setFolderId(Long.valueOf(folderIdStr));
+            userFavoriteVO.setFolderName(userFavoriteFolderDomainService.getFolderNameById(Long.valueOf(folderIdStr), userId));
+            userFavoriteVO.setUserId(userId);
+            resList.add(userFavoriteVO);
+        });
+        Page<UserFavoriteVO> page = new Page<>();
+        page.setCurrent(current);
+        page.setSize(size);
+        page.setTotal((Long) totalValue);
+        page.setRecords(resList);
+        return page;
+    }
+
+    @Override
+    public List<UserFavorite> getUserFavoriteList(Long userId) {
+        ThrowUtils.throwIf(userId == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        QueryWrapper<UserFavorite> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", userId);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public void putFavoriteListToCache(List<UserFavorite> userFavoriteList, Long userId) {
+        String userFavoriteKey = UserCacheConstant.getUserFavoriteKey(userId);
+        userFavoriteList.forEach(uFavorite -> {
+            String hash = uFavorite.getScreenplayId() + ":" + uFavorite.getFolderId();
+            Double score = (double) uFavorite.getCreateTime().getTime();
+            cacheManager.zSetAdd(userFavoriteKey, hash, score,cacheManager.getOneMonth());
+        });
+    }
+
+    @Override
+    public void putFavoriteListToCache(Long userId) {
+        ThrowUtils.throwIf(userId == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        List<UserFavorite> userFavoriteList = this.getUserFavoriteList(userId);
+        this.putFavoriteListToCache(userFavoriteList, userId);
     }
 
     private void putCaffineIfPresent(Long userId, Long screenplayId, Long folderId, Integer favoriteState){

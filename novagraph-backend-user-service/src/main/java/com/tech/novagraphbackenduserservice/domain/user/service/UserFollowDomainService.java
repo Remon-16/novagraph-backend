@@ -1,7 +1,9 @@
 package com.tech.novagraphbackenduserservice.domain.user.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tech.novagraphbackendmodel.dto.user.DoFollowRequest;
+import com.tech.novagraphbackendmodel.dto.user.FollowQueryRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.user.entity.UserFollow;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
@@ -18,10 +20,12 @@ public interface UserFollowDomainService extends IService<UserFollow> {
     /**
      * 关注列表
      */
-    List<UserVO> getFollowingList(User loginUser);
+    Page<UserVO> getFollowingPage(FollowQueryRequest followQueryRequest);
 
     /**
      * 粉丝列表
      */
-    List<UserVO> getFollowerList(User loginUser);
+    Page<UserVO> getFollowerPage(FollowQueryRequest followQueryRequest);
+
+    void putUserFollowToCache(Long userId);
 }

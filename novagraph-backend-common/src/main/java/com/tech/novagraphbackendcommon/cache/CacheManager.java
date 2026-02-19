@@ -58,6 +58,9 @@ public class CacheManager {
     private Integer redisZSetExpireTime = 24 * 60 * 60;
 
     @Getter
+    private Integer oneMonth = 30 * 24 * 60 * 60;
+
+    @Getter
     private final Long defaultPage = 1L;
     @Getter
     private final Long defaultSize = 10L;
@@ -196,6 +199,24 @@ public class CacheManager {
         localCache.put(compositeKey, oldValue + value);
     }
 
+    public void putObjectToHash(String hashKey, String key, Object value, Integer expireTime) {
+        // 1. 记录访问（计数 +1）
+        AddResult addResult = hotKeyDetector.add(key, 1);
+        if (addResult.isHotKey()) {
+            // 2. 存本地缓存
+            String compositeKey = buildCacheKey(hashKey, key);
+            localCache.put(compositeKey, value);
+        }
+        // 3. 存 Redis
+        int redisCacheExpireTime = expireTime +  RandomUtil.randomInt(0, expireTime);
+        redisTemplate.opsForHash().put(buildRedisKey(hashKey), key, value);
+        redisTemplate.expire(buildRedisKey(hashKey), redisCacheExpireTime, TimeUnit.SECONDS);
+    }
+
+    public void putObjectToHash(String hashKey, String key, Object value){
+        this.putObjectToHash(hashKey, key, value, redisValueExpireTime);
+    }
+
     /**
      * 获取Hash类型多级缓存
      * @param hashKey
@@ -233,12 +254,16 @@ public class CacheManager {
     }
 
     public void zSetAdd(String key, Object value, Double score) {
+        this.zSetAdd(key, value, score, redisValueExpireTime);
+    }
+
+    public void zSetAdd(String key, Object value, Double score, Integer expireTime) {
         String redisKey = buildRedisKey(key);
         Boolean f = redisTemplate.hasKey(redisKey);
         redisTemplate.opsForZSet().addIfAbsent(redisKey, value, score);
         // 不存在就设置一个过期时间
         if (!f) {
-            int redisCacheExpireTime = redisZSetExpireTime +  RandomUtil.randomInt(0, redisZSetExpireTime);
+            int redisCacheExpireTime = expireTime +  RandomUtil.randomInt(0, expireTime);
             redisTemplate.expire(redisKey, redisCacheExpireTime, TimeUnit.SECONDS);
         }
     }

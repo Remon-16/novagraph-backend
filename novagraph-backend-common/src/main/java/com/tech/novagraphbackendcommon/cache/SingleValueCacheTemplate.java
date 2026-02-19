@@ -13,20 +13,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Slf4j
 @Component
 @ConditionalOnClass(RedisTemplate.class)
-public class ValuePageCacheTemplate extends PageCacheTemplate {
-
+public class SingleValueCacheTemplate extends SingleCacheTemplate{
     @Resource
     private CacheManager cacheManager;
 
-    public <R, E, V> Page<V> valueQuery(R request, ValueQueryBean valueQueryBean,
-                                                    Supplier<Page<E>> dbLoader, Function<List<E>, List<V>> converter) {
+    public <R, E, V> V valueQuery(R request, ValueQueryBean valueQueryBean,
+                                        Supplier<E> dbLoader, Function<E, V> converter) {
         return super.baseQuery(
                 // 参数1: Request 对象
                 request,
@@ -39,11 +37,11 @@ public class ValuePageCacheTemplate extends PageCacheTemplate {
                 // 参数5: 转换逻辑
                 converter,
                 // 参数6: 写缓存逻辑
-                voPage -> this.putEntityVOPage2Cache(voPage, valueQueryBean.getCacheKey())
+                vo -> this.putEntityVOPage2Cache(vo, valueQueryBean.getCacheKey())
         );
     }
 
-    private <V> Page<V> queryCache(ValueQueryBean valueQueryBean){
+    private <V> V queryCache(ValueQueryBean valueQueryBean){
         String cacheKey = valueQueryBean.getCacheKey();
         Class VOClass = valueQueryBean.getVOClass();
         ThrowUtils.throwIf(StringUtils.isEmpty(cacheKey), ErrorCode.PARAMS_ERROR);
@@ -52,11 +50,11 @@ public class ValuePageCacheTemplate extends PageCacheTemplate {
         if(value == null){
             return null;
         }
-        return (Page<V>) JSONUtil.toBean((String)value, VOClass);
+        return (V) JSONUtil.toBean((String)value, VOClass);
     }
 
-    private <V> void putEntityVOPage2Cache(Page<V> voPage, String cacheKey){
-        cacheManager.putValueToCache(cacheKey, voPage);
+    private <V> void putEntityVOPage2Cache(V vo, String cacheKey){
+        cacheManager.putValueToCache(cacheKey, vo);
     }
 
 }

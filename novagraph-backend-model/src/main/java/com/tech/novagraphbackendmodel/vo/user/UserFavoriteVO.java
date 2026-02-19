@@ -1,12 +1,15 @@
 package com.tech.novagraphbackendmodel.vo.user;
 
 import com.tech.novagraphbackendmodel.user.entity.UserFavorite;
+import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
+import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Data
 public class UserFavoriteVO {
 
     private Long id;
@@ -22,9 +25,18 @@ public class UserFavoriteVO {
     private Long folderId;
 
     /**
+     * 收藏夹名称
+     */
+    private String folderName;
+
+    /**
      * 剧本 id
      */
     private Long screenplayId;
+    /**
+     * 剧本
+     */
+    private ScreenplayVO screenplayVo;
 
     /**
      * 创建时间

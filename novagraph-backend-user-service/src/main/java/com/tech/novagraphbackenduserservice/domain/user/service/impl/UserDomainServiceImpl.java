@@ -3,11 +3,14 @@ package com.tech.novagraphbackenduserservice.domain.user.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tech.novagraphbackendcommon.cache.SingleValueCacheTemplate;
+import com.tech.novagraphbackendcommon.cache.bean.ValueQueryBean;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendcommon.utils.JwtUtils;
 import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
+import com.tech.novagraphbackendmodel.user.constant.UserCacheConstant;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.user.valueobject.UserRoleEnum;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
@@ -36,6 +39,9 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private GraphFeignClient graphFeignClient;
+
+    @Resource
+    private SingleValueCacheTemplate singleValueCacheTemplate;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -182,5 +188,17 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
         UserVO userVO = new UserVO();
         BeanUtil.copyProperties(user, userVO);
         return userVO;
+    }
+
+    @Override
+    public UserVO getUserVOById(Long id) {
+        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR);
+        ValueQueryBean valueQueryBean = new ValueQueryBean();
+        valueQueryBean.setCacheKey(UserCacheConstant.getUserInfoKey(id));
+        valueQueryBean.setVOClass(UserVO.class);
+        return singleValueCacheTemplate.valueQuery(id, valueQueryBean,
+                () -> this.getById(id),
+                UserVO::objToVo
+                );
     }
 }

@@ -8,6 +8,8 @@ import com.tech.novagraphbackendmodel.dto.user.UserFavoriteQueryRequest;
 import com.tech.novagraphbackendmodel.user.entity.UserFavorite;
 import com.tech.novagraphbackendmodel.vo.user.UserFavoriteVO;
 
+import java.util.List;
+
 public interface UserFavoriteDomainService extends IService<UserFavorite> {
 
     void addUserFavorite(UserFavoriteAddRequest userFavoriteAddRequest);
@@ -15,4 +17,10 @@ public interface UserFavoriteDomainService extends IService<UserFavorite> {
     void deleteUserFavorite(UserFavoriteDelRequest userFavoriteDelRequest);
 
     Page<UserFavoriteVO> getUserFavoriteVOPage(UserFavoriteQueryRequest userFavoriteQueryRequest);
+
+    List<UserFavorite> getUserFavoriteList(Long userId);
+
+    void putFavoriteListToCache(Long userId);
+
+    void putFavoriteListToCache(List<UserFavorite> userFavoriteList, Long userId);
 }

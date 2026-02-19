@@ -170,9 +170,9 @@ public class UserRedisLuaScriptConstant {
             -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempFollowKey, hashKey, newNumber)
             redis.call('SET', followingKey, newFollowingCount)
-            redis.call('ZADD', userFollowingKey, score, targetUserId .. '::' .. 1)
+            redis.call('ZADD', userFollowingKey, score, targetUserId)
             redis.call('SET', followerKey, newFollowingCount)
-            redis.call('ZADD', userFollowerKey, score, userId .. '::' .. 1)
+            redis.call('ZADD', userFollowerKey, score, userId)
             
             redis.call('EXPIRE', followingKey, expTime)
             redis.call('EXPIRE', userFollowingKey, expTime)
@@ -218,9 +218,9 @@ public class UserRedisLuaScriptConstant {
             -- 4. 原子性操作：更新临时计数 + 删除用户点赞标记
             redis.call('HSET', tempFollowKey, hashKey, newNumber)
             redis.call('SET', followingKey, newFollowingCount)
-            redis.call('ZADD', userFollowingKey, score, targetUserId .. '::' .. 0)
+            redis.call('ZADD', userFollowingKey, score, targetUserId)
             redis.call('SET', followerKey, newFollowerCount)
-            redis.call('ZADD', userFollowerKey, score, userId .. '::' .. 0)
+            redis.call('ZADD', userFollowerKey, score, userId)
             
             redis.call('EXPIRE', followingKey, expTime)
             redis.call('EXPIRE', followerKey, expTime)
@@ -245,6 +245,7 @@ public class UserRedisLuaScriptConstant {
             local tempKey = KEYS[1]       -- 临时计数键
             local userFavoriteKey = KEYS[2]    -- 用户收藏状态键
             local spFavoriteKey = KEYS[3]      -- 动态Id键
+            local userFavoriteTotalKey = KEYS[4]    -- 用户收藏总数键
             local userId = ARGV[1]             -- 用户 ID
             local screenplayId = ARGV[2]       -- 动态 ID
             local folderId = ARGV[3]           -- 收藏夹 ID
@@ -263,18 +264,22 @@ public class UserRedisLuaScriptConstant {
             local hashKey = userId .. ':' .. userHashKey
             local oldNumber = tonumber(redis.call('HGET', tempKey, hashKey) or 0)
             local oldFavoriteCount = tonumber(redis.call('GET', spFavoriteKey) or 0)
+            local oldTotalCount = tonumber(redis.call('GET', userFavoriteTotalKey) or 0)
             
             -- 3. 计算新值
             local newNumber = oldNumber + 1
             local newFavoriteCount = oldFavoriteCount + 1
+            local newTotalCount = oldTotalCount + 1
             
             -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempKey, hashKey, newNumber)
             redis.call('SET', spFavoriteKey, newFavoriteCount)
-            redis.call('ZADD', userFavoriteKey, score, userHashKey .. '::' .. 1)
+            redis.call('ZADD', userFavoriteKey, score, userHashKey)
+            redis.call('SET', userFavoriteTotalKey, newTotalCount)
             
             redis.call('EXPIRE', spFavoriteKey, expTime)
             redis.call('EXPIRE', userFavoriteKey, expTime)
+            redis.call('EXPIRE', userFavoriteTotalKey, expTime)
             
             return 1  -- 返回 1 表示成功
             """, Long.class);
@@ -290,6 +295,7 @@ public class UserRedisLuaScriptConstant {
             local tempKey = KEYS[1]       -- 临时计数键
             local userFavoriteKey = KEYS[2]    -- 用户收藏状态键
             local spFavoriteKey = KEYS[3]      -- 动态Id键
+            local userFavoriteTotalKey = KEYS[4]    -- 用户收藏总数键
             local userId = ARGV[1]             -- 用户 ID
             local screenplayId = ARGV[2]       -- 动态 ID
             local folderId = ARGV[3]           -- 收藏夹 ID
@@ -306,17 +312,21 @@ public class UserRedisLuaScriptConstant {
             local hashKey = userId .. ':' .. userHashKey
             local oldNumber = tonumber(redis.call('HGET', tempKey, hashKey) or 0)
             local oldFavoriteCount = tonumber(redis.call('GET', spFavoriteKey) or 0)
+            local oldTotalCount = tonumber(redis.call('GET', userFavoriteTotalKey) or 0)
             -- 3. 计算新值并更新
             local newNumber = oldNumber - 1
             local newFavoriteCount = oldFavoriteCount - 1
+            local newTotalCount = oldTotalCount - 1
             
             -- 4. 原子性操作：更新临时计数 + 删除用户点赞标记
             redis.call('HSET', tempKey, hashKey, newNumber)
             redis.call('SET', spFavoriteKey, newFavoriteCount)
-            redis.call('ZADD', userFavoriteKey, score, userHashKey .. '::' .. 0)
+            redis.call('ZADD', userFavoriteKey, score, userHashKey)
+            redis.call('SET', userFavoriteTotalKey, newTotalCount)
             
             redis.call('EXPIRE', spFavoriteKey, expTime)
             redis.call('EXPIRE', userFavoriteKey, expTime)
+            redis.call('EXPIRE', userFavoriteTotalKey, expTime)
             
             return 1  -- 返回 1 表示成功
             """, Long.class);

@@ -3,6 +3,10 @@ package com.tech.novagraphbackendmodel.user.constant;
 import com.tech.novagraphbackendcommon.utils.CacheUtils;
 
 public interface UserCacheConstant {
+    /**
+     * 用户信息相关
+     */
+    String USER_INFO_KEY_PREFIX = "user:";
 
     /*
      * 用户收藏相关
@@ -22,6 +26,15 @@ public interface UserCacheConstant {
      * 用户收藏
      */
     String USER_FAVORITE_KEY_PREFIX = "user:favorite:";
+    /**
+     * 用户收藏总数
+     */
+    String USER_FAVORITE_TOTAL_KEY_PREFIX = "user:favorite:t:";
+
+    /**
+     * 用户收藏夹 Hash
+     */
+    String USER_FAVORITE_FOLDER_KEY_PREFIX = "user:favorite:folder:";
 
     /*
      * 用户动态点赞相关
@@ -100,6 +113,13 @@ public interface UserCacheConstant {
      */
 
     /*
+     * 用户信息相关
+     */
+    static String getUserInfoKey(Long userId){
+        return USER_INFO_KEY_PREFIX + userId;
+    }
+
+    /*
      * 用户收藏相关
      */
     static String getUserFdCache(String hex){
@@ -112,6 +132,14 @@ public interface UserCacheConstant {
 
     static String getTempUserFavoriteKey(String tail){
         return TEMP_USER_FAVORITE_KEY_PREFIX + tail;
+    }
+
+    static String getUserFavoriteFolderKey(Long userId){
+        return USER_FAVORITE_FOLDER_KEY_PREFIX + userId;
+    }
+
+    static String getUserFavoriteTotalKey(Long userId){
+        return USER_FAVORITE_TOTAL_KEY_PREFIX + userId;
     }
 
     /*
