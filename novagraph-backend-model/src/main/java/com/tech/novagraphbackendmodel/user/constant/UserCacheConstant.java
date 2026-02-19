@@ -108,6 +108,59 @@ public interface UserCacheConstant {
 
     Long UN_FOLLOWING_CONSTANT = 0L;
 
+
+    /*
+     * 动态评论相关
+     *
+     */
+    /**
+     * 剧本评论缓存
+     */
+    String USER_POST_COMMENT_CACHE_PREFIX = "ngpt:cmt:";
+
+    /**
+     * 剧本评论 zSet缓存名称：ngsp:comment:sorted:(desc/asc):postId
+     */
+    String USER_POST_COMMENT_SORTED_CACHE_PREFIX = "ngpt:cmt:sorted";
+    /**
+     * 剧本评论 评论总数缓存名称 ngsp:comment:sorted:total:postId
+     */
+    String USER_POST_COMMENT_SORTED_TOTAL_CACHE_PREFIX = "ngpt:cmt:sorted:total";
+    /**
+     * 剧本二级评论 zSet缓存名称 comment:second:sorted:(desc/asc):commentId
+     */
+    String USER_POST_SECOND_COMMENT_SORTED_CACHE_PREFIX = "ngpt:cmt:sc:sorted";
+    /**
+     * 剧本二级评论 总数缓存名称 comment:second:sorted:total:commentId
+     */
+    String USER_POST_SECOND_COMMENT_SORTED_TOTAL_CACHE_PREFIX = "ngpt:cmt:sc:sorted:total";
+
+    /*
+     * 动态评论相关
+     *
+     */
+    static String getUserPostCommentCacheKey(Long commentId){
+        return USER_POST_COMMENT_CACHE_PREFIX + commentId;
+    }
+
+    static String getUserPostCommentSortedCacheKey(String order, Long postId){
+        return USER_POST_COMMENT_SORTED_CACHE_PREFIX + order + ":" + + postId;
+    }
+
+    static String getUserPostCommentSortedTotalCacheKey(Long commentId){
+        return USER_POST_COMMENT_SORTED_TOTAL_CACHE_PREFIX + commentId;
+    }
+
+    static String getUserPostSecondCommentSortedCacheKey(String order, Long commentId){
+        return USER_POST_SECOND_COMMENT_SORTED_CACHE_PREFIX + order + ":" + commentId;
+    }
+
+    static String getUserPostSecondCommentSortedTotalCacheKey(Long commentId){
+        return USER_POST_SECOND_COMMENT_SORTED_TOTAL_CACHE_PREFIX + commentId;
+    }
+
+
+
     /*
      * 静态方法
      */

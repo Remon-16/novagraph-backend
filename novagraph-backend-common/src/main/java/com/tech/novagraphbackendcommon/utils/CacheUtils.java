@@ -28,7 +28,7 @@ public class CacheUtils {
     }
 
     public static String getCacheKey(String keyHead, String keyTail) {
-        return keyHead + ":" + keyTail;
+        return keyHead + keyTail;
     }
 
     public static String getRedisCacheKey(String keyHead, String keyTail){
