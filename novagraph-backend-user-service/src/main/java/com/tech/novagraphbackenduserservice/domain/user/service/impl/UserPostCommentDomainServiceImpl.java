@@ -7,9 +7,9 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tech.novagraphbackendcommon.cache.CacheManager;
-import com.tech.novagraphbackendcommon.cache.CommentPageCacheTemplate;
-import com.tech.novagraphbackendcommon.cache.bean.CommentQueryBean;
-import com.tech.novagraphbackendcommon.cache.bean.CommentSaveBean;
+import com.tech.novagraphbackendcommon.cache.ZSetPageCacheTemplate;
+import com.tech.novagraphbackendcommon.cache.bean.ZSetQueryBean;
+import com.tech.novagraphbackendcommon.cache.bean.ZSetSaveBean;
 import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
@@ -25,8 +25,8 @@ import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.user.entity.UserPostComment;
 
 import com.tech.novagraphbackendmodel.vo.user.UserListVO;
-import com.tech.novagraphbackendmodel.vo.user.UserPostCommentRootVO;
-import com.tech.novagraphbackendmodel.vo.user.UserPostCommentVO;
+import com.tech.novagraphbackendmodel.vo.user.UserPostZSetRootVO;
+import com.tech.novagraphbackendmodel.vo.user.UserPostZSetVO;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import com.tech.novagraphbackendserviceclient.UserFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserPostCommentRepository;
@@ -52,7 +52,7 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
     private RedisTemplate<String, Object> redisTemplate;
 
     @Resource
-    private CommentPageCacheTemplate commentPageCacheTemplate;
+    private ZSetPageCacheTemplate ZSetPageCacheTemplate;
 
     @Resource
     private UserPostCommentRepository postCommentRepository;
@@ -97,7 +97,7 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
     }
 
     @Override
-    public Page<UserPostCommentRootVO> getUserPostCommentRootVo(UserPostCommentQueryRequest userPostCommentQueryRequest) {
+    public Page<UserPostZSetRootVO> getUserPostCommentRootVo(UserPostCommentQueryRequest userPostCommentQueryRequest) {
         ThrowUtils.throwIf(userPostCommentQueryRequest == null,
                 ErrorCode.PARAMS_ERROR, "userPostCommentQueryRequest");
         ThrowUtils.throwIf(userPostCommentQueryRequest.getPostId() == null,
@@ -108,26 +108,26 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
         ThrowUtils.throwIf(size > 30, ErrorCode.PARAMS_ERROR);
         // 先查直接评论在剧本上的 targetId == null
         userPostCommentQueryRequest.setTargetId(null);
-        Page<UserPostCommentVO> userPostCommentVoPage = queryUserPostCommentVo(userPostCommentQueryRequest, current, size);
+        Page<UserPostZSetVO> userPostCommentVoPage = queryUserPostCommentVo(userPostCommentQueryRequest, current, size);
         // 接着通过评论的id，去查前10个子评论
-        List<UserPostCommentRootVO> userPostCommentRootVOList = new ArrayList<>();
-        for(UserPostCommentVO userPostCommentVo : userPostCommentVoPage.getRecords()){
+        List<UserPostZSetRootVO> userPostCommentRootVOList = new ArrayList<>();
+        for(UserPostZSetVO userPostCommentVo : userPostCommentVoPage.getRecords()){
             UserPostCommentQueryRequest userPostCommentQueryRequest1 = new UserPostCommentQueryRequest();
             userPostCommentQueryRequest1.setCurrent(1);
             userPostCommentQueryRequest1.setPageSize(10);
             userPostCommentQueryRequest1.setTargetId(userPostCommentVo.getId());
             userPostCommentQueryRequest1.setPostId(userPostCommentVo.getPostId());
             userPostCommentQueryRequest1.setSortOrder(userPostCommentQueryRequest.getSortOrder());
-            Page<UserPostCommentVO> userPostCommentVoPage2 = null;
+            Page<UserPostZSetVO> userPostCommentVoPage2 = null;
 
             userPostCommentVoPage2 = this.getUserPostCommentVo(userPostCommentQueryRequest1);
-            UserPostCommentRootVO userPostCommentRootVo = new UserPostCommentRootVO();
+            UserPostZSetRootVO userPostCommentRootVo = new UserPostZSetRootVO();
             BeanUtils.copyProperties(userPostCommentVo, userPostCommentRootVo);
             userPostCommentRootVo.setUserPostCommentVOPage(userPostCommentVoPage2);
             userPostCommentRootVOList.add(userPostCommentRootVo);
         }
 
-        Page<UserPostCommentRootVO> userPostCommentRootVoPage = new Page<>();
+        Page<UserPostZSetRootVO> userPostCommentRootVoPage = new Page<>();
         userPostCommentRootVoPage.setRecords(userPostCommentRootVOList);
         userPostCommentRootVoPage.setCurrent(userPostCommentVoPage.getCurrent());
         userPostCommentRootVoPage.setTotal(userPostCommentVoPage.getTotal());
@@ -136,7 +136,7 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
     }
 
     @Override
-    public Page<UserPostCommentVO> getUserPostCommentVo(UserPostCommentQueryRequest userPostCommentQueryRequest) {
+    public Page<UserPostZSetVO> getUserPostCommentVo(UserPostCommentQueryRequest userPostCommentQueryRequest) {
         ThrowUtils.throwIf(userPostCommentQueryRequest == null,
                 ErrorCode.PARAMS_ERROR, "userPostCommentQueryRequest");
         ThrowUtils.throwIf(userPostCommentQueryRequest.getPostId() == null,
@@ -176,7 +176,7 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
         String valueKey = UserCacheConstant.getUserPostCommentCacheKey(userPostComment.getId());
         List<UserPostComment> userPostCommentList = new ArrayList<>();
         userPostCommentList.add(userPostComment);
-        List<UserPostCommentVO> userPostCommentVOList = this.getUserPostCommentVo(userPostCommentList);
+        List<UserPostZSetVO> userPostCommentVOList = this.getUserPostCommentVo(userPostCommentList);
         String valueStr = JSONUtil.toJsonStr(userPostCommentVOList.getFirst());
         // 更新 total
         Long total = cacheManager.getTotal(totalKey);
@@ -196,7 +196,7 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
             return;
         }
         Object Value = cacheManager.getValueCache(valueKey);
-        UserPostCommentVO userPostCommentVo = JSONUtil.toBean((String) Value, UserPostCommentVO.class);
+        UserPostZSetVO userPostCommentVo = JSONUtil.toBean((String) Value, UserPostZSetVO.class);
         userPostCommentVo.setContent(userPostComment.getContent());
         cacheManager.putValueToCache(valueKey, JSONUtil.toJsonStr(userPostCommentVo), cacheManager.getRedisZSetExpireTime());
     }
@@ -226,30 +226,29 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
         return postCommentRepository.getById(postCommentId);
     }
 
-    private Page<UserPostCommentVO> queryUserPostCommentVo(UserPostCommentQueryRequest userPostCommentQueryRequest,
-                                                               Long current, Long size) {
+    private Page<UserPostZSetVO> queryUserPostCommentVo(UserPostCommentQueryRequest userPostCommentQueryRequest,
+                                                        Long current, Long size) {
         String order = userPostCommentQueryRequest.getSortOrder();
         Long postId = userPostCommentQueryRequest.getPostId();
         Long targetId = userPostCommentQueryRequest.getTargetId();
         String sortedKey = getSortedKey(order, postId, targetId);
         String sortedTotalKey = getSortedTotalKey(postId, targetId);
 
-        CommentQueryBean commentQueryBean = new CommentQueryBean();
-        CommentSaveBean commentSaveBean = new CommentSaveBean();
+        ZSetQueryBean ZSetQueryBean = new ZSetQueryBean();
+        ZSetSaveBean zsetSaveBean = new ZSetSaveBean();
 
+        ZSetQueryBean.setSortedKey(sortedKey);
+        ZSetQueryBean.setPage(current);
+        ZSetQueryBean.setSize(size);
+        ZSetQueryBean.setVOClass(UserPostZSetVO.class);
+        ZSetQueryBean.setSortedTotalKey(sortedTotalKey);
+        ZSetQueryBean.setOrder(order);
+        ZSetQueryBean.setValueKeyHead(UserCacheConstant.USER_POST_COMMENT_CACHE_PREFIX);
 
-        commentQueryBean.setSortedKey(sortedKey);
-        commentQueryBean.setPage(current);
-        commentQueryBean.setSize(size);
-        commentQueryBean.setVOClass(UserPostCommentVO.class);
-        commentQueryBean.setSortedTotalKey(sortedTotalKey);
-        commentQueryBean.setOrder(order);
-        commentQueryBean.setKeyHead(UserCacheConstant.USER_POST_COMMENT_CACHE_PREFIX);
-
-        commentSaveBean.setCommentKeyHead(UserCacheConstant.USER_POST_COMMENT_CACHE_PREFIX);
-        commentSaveBean.setSortedKey(sortedKey);
-        commentSaveBean.setSortedTotalKey(sortedTotalKey);
-        return commentPageCacheTemplate.commentQuery(userPostCommentQueryRequest, commentQueryBean, commentSaveBean,
+        zsetSaveBean.setValueKeyHead(UserCacheConstant.USER_POST_COMMENT_CACHE_PREFIX);
+        zsetSaveBean.setSortedKey(sortedKey);
+        zsetSaveBean.setSortedTotalKey(sortedTotalKey);
+        return ZSetPageCacheTemplate.zSetQuery(userPostCommentQueryRequest, ZSetQueryBean, zsetSaveBean,
                 () -> postCommentRepository.page(new Page<>(current, size), this.getQueryWrapper(userPostCommentQueryRequest)),
                 this::getUserPostCommentVo
         );
@@ -271,7 +270,7 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
         }
     }
 
-    private List<UserPostCommentVO> getUserPostCommentVo(List<UserPostComment> userPostCommentList){
+    private List<UserPostZSetVO> getUserPostCommentVo(List<UserPostComment> userPostCommentList){
         if(userPostCommentList == null || userPostCommentList.isEmpty()){
             return new ArrayList<>();
         }
@@ -280,7 +279,7 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
         List<User> userList = userListVO.getUserList(userListVO.getUserListJson());
         Map<Long, List<User>> userIdUserListMap = userList.stream()
                 .collect(Collectors.groupingBy(User::getId));
-        List<UserPostCommentVO> userPostCommentVOList = userPostCommentList.stream().map(UserPostCommentVO::objToVo).toList();
+        List<UserPostZSetVO> userPostCommentVOList = userPostCommentList.stream().map(UserPostZSetVO::objToVo).toList();
 
         Map<Long, UserVO> commentUserMap = new HashMap<>();
         userPostCommentVOList.forEach(userPostCommentVO -> {
@@ -308,7 +307,7 @@ public class UserPostCommentDomainServiceImpl implements UserPostCommentDomainSe
         return userPostCommentVOList;
     }
 
-    private void getCommentUserInfo(UserPostCommentVO userPostCommentVo, Map<Long, UserVO> commentUserMap, Long targetId) {
+    private void getCommentUserInfo(UserPostZSetVO userPostCommentVo, Map<Long, UserVO> commentUserMap, Long targetId) {
         // 先查这个集合里有没有，如果没有再去数据库查
         if(commentUserMap.containsKey(targetId)){
             UserVO user = commentUserMap.get(targetId);

@@ -1,6 +1,5 @@
 package com.tech.novagraphbackendgraphservice.application.screenplay;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayCommentQueryRequest;

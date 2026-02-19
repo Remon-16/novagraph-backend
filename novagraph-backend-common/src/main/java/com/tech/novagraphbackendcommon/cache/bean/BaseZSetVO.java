@@ -5,9 +5,9 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class BaseCommentVO {
+public class BaseZSetVO {
     /**
-     * 评论ID
+     * ID
      */
     private Long id;
     /**

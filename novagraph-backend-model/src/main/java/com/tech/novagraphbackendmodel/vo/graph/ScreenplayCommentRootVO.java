@@ -1,16 +1,14 @@
 package com.tech.novagraphbackendmodel.vo.graph;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tech.novagraphbackendcommon.cache.bean.BaseCommentVO;
+import com.tech.novagraphbackendcommon.cache.bean.BaseZSetVO;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Date;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ScreenplayCommentRootVO extends BaseCommentVO {
+public class ScreenplayCommentRootVO extends BaseZSetVO {
     /**
      * 用户 id
      */

@@ -103,6 +103,7 @@ public class UserRedisLuaScriptConstant {
             local tempHisKey = KEYS[1]       -- 临时计数键（如 novagraph:his:temp:{timeSlice}）
             local userHisKey = KEYS[2]       -- 用户浏览历史状态键（如 novagraph:his:{userId}）
             local screenplayKey = KEYS[3]       -- 动态Id键（如 novagraph:sp:{postId}）
+            local userHisTotalKey = KEYS[4]
             local userId = ARGV[1]             -- 用户 ID
             local screenplayId = ARGV[2]             -- 动态 ID
             local score = ARGV[3]              --  score
@@ -112,16 +113,22 @@ public class UserRedisLuaScriptConstant {
             local hashKey = userId .. ':' .. postId
             local oldNumber = tonumber(redis.call('HGET', tempHisKey, hashKey) or 0)
             local oldPlayCount = tonumber(redis.call('GET', screenplayKey) or 0)
+            local oldUserCount = tonumber(redis.call('GET', userHisTotalKey) or 0)
             
             -- 2. 计算新值
             local newNumber = oldNumber + 1
             local newPlayCount = oldPlayCount + 1
+            local newUserCount = oldUserCount + 1
             
             -- 3. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempHisKey, hashKey, newNumber)
             redis.call('SET', screenplayKey, newPlayCount)
+            redis.call('SET', userHisTotalKey, newUserCount)
+            redis.call('ZADD', userHisKey, score, screenplayId)
             
+            redis.call('EXPIRE', userHisKey, expTime)
             redis.call('EXPIRE', screenplayKey, expTime)
+            redis.call('EXPIRE', userHisTotalKey, expTime)
             
             return 1  -- 返回 1 表示成功
             """, Long.class);

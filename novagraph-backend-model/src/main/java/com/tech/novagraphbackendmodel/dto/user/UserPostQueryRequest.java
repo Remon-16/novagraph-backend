@@ -13,24 +13,11 @@ public class UserPostQueryRequest extends PageRequest {
      * 用户 id
      */
     private List<Long> userIdList;
-
     /**
-     * 文本内容
+     * 动态 id
      */
-    private String content;
+    private List<Long> postIdList;
 
-    /**
-     * 类型：text-文字，screenplay-剧本，post-动态...
-     */
-    private String postType;
+    private Long loginUserId;
 
-    /**
-     * 引用 id
-     */
-    private Long quotedId;
-
-    /**
-     * 可见性：1-公开，2-私密...
-     */
-    private Integer visibility;
 }

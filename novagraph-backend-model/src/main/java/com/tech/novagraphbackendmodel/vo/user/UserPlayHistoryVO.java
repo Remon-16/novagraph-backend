@@ -1,13 +1,15 @@
 package com.tech.novagraphbackendmodel.vo.user;
 
+import com.tech.novagraphbackendcommon.cache.bean.BaseZSetVO;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class UserPlayHistoryVO {
-    private Long id;
+public class UserPlayHistoryVO extends BaseZSetVO {
 
     /**
      * 用户 id
@@ -24,8 +26,4 @@ public class UserPlayHistoryVO {
      */
     private ScreenplayVO screenplayVo;
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
 }

@@ -5,19 +5,24 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tech.novagraphbackendcommon.cache.CacheManager;
 import com.tech.novagraphbackendcommon.cache.ValuePageCacheTemplate;
+import com.tech.novagraphbackendcommon.cache.ZSetPageCacheTemplate;
 import com.tech.novagraphbackendcommon.cache.bean.ValueQueryBean;
+import com.tech.novagraphbackendcommon.cache.bean.ZSetQueryBean;
+import com.tech.novagraphbackendcommon.cache.bean.ZSetSaveBean;
 import com.tech.novagraphbackendcommon.cache.valueobject.LuaStatusEnum;
 import com.tech.novagraphbackendcommon.cache.valueobject.UserActionEnum;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendcommon.utils.CacheUtils;
+import com.tech.novagraphbackendcommon.utils.ToolUtils;
 import com.tech.novagraphbackendmodel.dto.user.UserPlayHistoryAddRequest;
 import com.tech.novagraphbackendmodel.dto.user.UserPlayHistoryQueryRequest;
 import com.tech.novagraphbackendmodel.user.constant.UserCacheConstant;
 import com.tech.novagraphbackendmodel.user.constant.UserRedisLuaScriptConstant;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.user.entity.UserPlayHistory;
+import com.tech.novagraphbackendmodel.user.entity.UserPost;
 import com.tech.novagraphbackendmodel.vo.user.UserPlayHistoryVO;
 import com.tech.novagraphbackendserviceclient.GraphFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserPlayHistoryDomainService;
@@ -42,7 +47,7 @@ public class UserPlayHistoryDomainServiceImpl extends ServiceImpl<UserPlayHistor
     private CacheManager cacheManager;
 
     @Resource
-    private ValuePageCacheTemplate valuePageCacheTemplate;
+    private ZSetPageCacheTemplate ZSetPageCacheTemplate;
 
     @Resource
     private GraphFeignClient graphFeignClient;
@@ -56,14 +61,20 @@ public class UserPlayHistoryDomainServiceImpl extends ServiceImpl<UserPlayHistor
         String timeSlice = CacheUtils.getTimeSlice();
 
         String tempHisKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getTempHisKey(timeSlice));
-        String userHisKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserHisKey(loginUser.getId()));
+        String userHisKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserHisStoredKey(loginUser.getId()));
+        String userHisTotalKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserHisTotalKey(loginUser.getId()));
         String SPHisKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getSpHisKey(screenplayId.toString()));
+
+        String score = ToolUtils.getNowTimeString();
+        Integer expireTime = cacheManager.getOneMonth();
 
         redisTemplate.execute(
                 UserRedisLuaScriptConstant.SP_HIS_ADD_SCRIPT,
-                Arrays.asList(tempHisKey, userHisKey, SPHisKey),
+                Arrays.asList(tempHisKey, userHisKey, SPHisKey, userHisTotalKey),
                 loginUser.getId(),
-                screenplayId
+                screenplayId,
+                score,
+                expireTime
         );
 
         // 如果存在本地缓存，则写入
@@ -75,19 +86,33 @@ public class UserPlayHistoryDomainServiceImpl extends ServiceImpl<UserPlayHistor
     public Page<UserPlayHistoryVO> getUserPlayHistory(UserPlayHistoryQueryRequest userPlayHistoryQueryRequest) {
         ThrowUtils.throwIf(userPlayHistoryQueryRequest == null, ErrorCode.PARAMS_ERROR);
         ThrowUtils.throwIf(userPlayHistoryQueryRequest.getLoginUser() == null, ErrorCode.PARAMS_ERROR);
-        User loginUser = userPlayHistoryQueryRequest.getLoginUser();
-        String userHisKey = UserCacheConstant.getUserHisKey(loginUser.getId());
-        ValueQueryBean valueQueryBean = new ValueQueryBean();
-        valueQueryBean.setCacheKey(userHisKey);
-        valueQueryBean.setVOClass(UserPlayHistoryVO.class);
+        String order = userPlayHistoryQueryRequest.getSortOrder();
+        Long loginUserId = userPlayHistoryQueryRequest.getLoginUser().getId();
+        String sortedKey = UserCacheConstant.getUserHisStoredKey(loginUserId);
+        String sortedTotalKey = UserCacheConstant.getUserHisTotalKey(loginUserId);
 
-        int size = userPlayHistoryQueryRequest.getPageSize();
-        int current = userPlayHistoryQueryRequest.getCurrent();
+        ZSetQueryBean ZSetQueryBean = new ZSetQueryBean();
+        ZSetSaveBean zSetSaveBean = new ZSetSaveBean();
 
-        return valuePageCacheTemplate.valueQuery(userPlayHistoryQueryRequest, valueQueryBean,
-                () -> this.page(new Page<>(current, size), this.getQueryWrapper(userPlayHistoryQueryRequest)),
+        long current =userPlayHistoryQueryRequest.getCurrent();
+        long size = userPlayHistoryQueryRequest.getPageSize();
+
+        ZSetQueryBean.setSortedKey(sortedKey);
+        ZSetQueryBean.setPage(current);
+        ZSetQueryBean.setSize(size);
+        ZSetQueryBean.setVOClass(UserPost.class);
+        ZSetQueryBean.setSortedTotalKey(sortedTotalKey);
+        ZSetQueryBean.setOrder(order);
+        ZSetQueryBean.setValueKeyHead(UserCacheConstant.USER_HIS_KEY_PREFIX);
+
+        zSetSaveBean.setValueKeyHead(UserCacheConstant.USER_HIS_KEY_PREFIX);
+        zSetSaveBean.setSortedKey(sortedKey);
+        zSetSaveBean.setSortedTotalKey(sortedTotalKey);
+
+        return ZSetPageCacheTemplate.zSetQuery(userPlayHistoryQueryRequest, ZSetQueryBean, zSetSaveBean,
+                () -> this.page(new Page<>(current, size), getQueryWrapper(userPlayHistoryQueryRequest)),
                 this::EntityToVo
-                );
+        );
     }
 
     private QueryWrapper<UserPlayHistory> getQueryWrapper(UserPlayHistoryQueryRequest userPlayHistoryQueryRequest){

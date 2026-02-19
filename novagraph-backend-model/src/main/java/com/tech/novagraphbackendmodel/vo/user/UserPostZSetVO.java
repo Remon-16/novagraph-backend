@@ -1,6 +1,6 @@
 package com.tech.novagraphbackendmodel.vo.user;
 
-import com.tech.novagraphbackendcommon.cache.bean.BaseCommentVO;
+import com.tech.novagraphbackendcommon.cache.bean.BaseZSetVO;
 import com.tech.novagraphbackendmodel.user.entity.UserPostComment;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +8,7 @@ import org.springframework.beans.BeanUtils;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class UserPostCommentVO extends BaseCommentVO {
+public class UserPostZSetVO extends BaseZSetVO {
 
     /**
      * 用户 id
@@ -50,8 +50,8 @@ public class UserPostCommentVO extends BaseCommentVO {
      */
     private UserVO user;
 
-    public static UserPostCommentVO objToVo(UserPostComment userPostComment) {
-        UserPostCommentVO userPostCommentVO = new UserPostCommentVO();
+    public static UserPostZSetVO objToVo(UserPostComment userPostComment) {
+        UserPostZSetVO userPostCommentVO = new UserPostZSetVO();
         BeanUtils.copyProperties(userPostComment, userPostCommentVO);
         return userPostCommentVO;
     }

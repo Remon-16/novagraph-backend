@@ -1,14 +1,17 @@
 package com.tech.novagraphbackendmodel.vo.user;
 
+import com.tech.novagraphbackendcommon.cache.bean.BaseZSetVO;
 import com.tech.novagraphbackendmodel.user.entity.UserPost;
+import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class UserPostVO {
-    private Long id;
+public class UserPostVO extends BaseZSetVO {
 
     /**
      * 用户 id
@@ -29,16 +32,14 @@ public class UserPostVO {
      * 引用 id
      */
     private Long quotedId;
-
+    /**
+     * 剧本
+     */
+    private ScreenplayVO screenplayVO;
     /**
      * 可见性：1-公开，2-私密...
      */
     private Integer visibility;
-
-    /**
-     * 创建时间
-     */
-    private Date createTime;
 
     /**
      * 用户是否对该内容点赞

@@ -1,17 +1,15 @@
 package com.tech.novagraphbackendmodel.vo.graph;
 
-import com.tech.novagraphbackendcommon.cache.bean.BaseCommentVO;
+import com.tech.novagraphbackendcommon.cache.bean.BaseZSetVO;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayComment;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.BeanUtils;
 
-import java.util.Date;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ScreenplayCommentVO extends BaseCommentVO {
+public class ScreenplayCommentVO extends BaseZSetVO {
 
     /**
      * 用户 id

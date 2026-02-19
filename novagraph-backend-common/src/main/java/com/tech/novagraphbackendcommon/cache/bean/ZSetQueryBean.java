@@ -3,10 +3,10 @@ package com.tech.novagraphbackendcommon.cache.bean;
 import lombok.Data;
 
 @Data
-public class CommentQueryBean {
+public class ZSetQueryBean {
     private String sortedKey;
     private String sortedTotalKey;
-    private String keyHead;
+    private String valueKeyHead;
     private String order;
     private Long page;
     private Long size;

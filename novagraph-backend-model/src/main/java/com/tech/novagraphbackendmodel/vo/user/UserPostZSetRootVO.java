@@ -1,13 +1,13 @@
 package com.tech.novagraphbackendmodel.vo.user;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tech.novagraphbackendcommon.cache.bean.BaseCommentVO;
+import com.tech.novagraphbackendcommon.cache.bean.BaseZSetVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class UserPostCommentRootVO extends BaseCommentVO {
+public class UserPostZSetRootVO extends BaseZSetVO {
     /**
      * 用户 id
      */
@@ -31,5 +31,5 @@ public class UserPostCommentRootVO extends BaseCommentVO {
     /**
      * 子评论
      */
-    Page<UserPostCommentVO> userPostCommentVOPage;
+    Page<UserPostZSetVO> userPostCommentVOPage;
 }

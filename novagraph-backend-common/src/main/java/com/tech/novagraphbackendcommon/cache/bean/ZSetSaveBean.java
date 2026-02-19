@@ -3,8 +3,8 @@ package com.tech.novagraphbackendcommon.cache.bean;
 import lombok.Data;
 
 @Data
-public class CommentSaveBean {
-    private String commentKeyHead;
+public class ZSetSaveBean {
+    private String valueKeyHead;
     private String sortedKey;
     private String sortedTotalKey;
     private Long total;
