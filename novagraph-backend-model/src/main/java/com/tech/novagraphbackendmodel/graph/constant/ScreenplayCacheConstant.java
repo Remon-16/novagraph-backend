@@ -1,6 +1,8 @@
 package com.tech.novagraphbackendmodel.graph.constant;
 
+import cn.hutool.json.JSONUtil;
 import com.tech.novagraphbackendcommon.utils.CacheUtils;
+import org.springframework.util.DigestUtils;
 
 public class ScreenplayCacheConstant {
     /**
@@ -24,6 +26,11 @@ public class ScreenplayCacheConstant {
      * 剧本缓存
      */
     public static final String SCREENPLAY_CACHE_PREFIX = "ngsp:";
+
+    /**
+     * 剧本查询缓存
+     */
+    public static final String SCREENPLAY_QUERY_CACHE_PREFIX = "ngsp:query:";
 
     /**
      * 剧本评论缓存
@@ -95,6 +102,12 @@ public class ScreenplayCacheConstant {
 
     public static String getScreenplayCacheKey(String key){
         return SCREENPLAY_CACHE_PREFIX + key;
+    }
+
+    public static String getScreenplayQueryCacheKey(Object queryCondition){
+        String queryConditionString = JSONUtil.toJsonStr(queryCondition);
+        String hashKey = DigestUtils.md5DigestAsHex(queryConditionString.getBytes());
+        return SCREENPLAY_QUERY_CACHE_PREFIX + hashKey;
     }
 
 

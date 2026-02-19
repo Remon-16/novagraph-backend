@@ -16,6 +16,7 @@ import com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayMap
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayAddRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayQueryRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayUpdateRequest;
+import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.Screenplay;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
@@ -57,12 +58,12 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
     @Override
     public ScreenplayVO queryScreenplayById(Long id) {
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "ID不能为空");
-        String cacheKey = StrUtil.format("screenplay:{}", id);
+        ScreenplayQueryRequest screenplayQueryRequest = new ScreenplayQueryRequest();
+        screenplayQueryRequest.setId(id);
+        String cacheKey = ScreenplayCacheConstant.getScreenplayQueryCacheKey(screenplayQueryRequest);
         ValueQueryBean valueQueryBean = new ValueQueryBean();
         valueQueryBean.setCacheKey(cacheKey);
         valueQueryBean.setVOClass(ScreenplayVO.class);
-        ScreenplayQueryRequest screenplayQueryRequest = new ScreenplayQueryRequest();
-        screenplayQueryRequest.setId(id);
 
         Page<ScreenplayVO> page = valuePageCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
                 () -> this.page(new Page<>(1, 10), this.getQueryWrapper(screenplayQueryRequest)),
@@ -110,15 +111,13 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
     public Page<ScreenplayVO> queryScreenplayPage(ScreenplayQueryRequest screenplayQueryRequest) {
         int current = screenplayQueryRequest.getCurrent();
         int size = screenplayQueryRequest.getPageSize();
-        Page<Screenplay> screenplayPage = this.page(new Page<>(current, size),
-                this.getQueryWrapper(screenplayQueryRequest));
-        List<Screenplay> screenplayList = screenplayPage.getRecords();
-        List<ScreenplayVO> screenplayVOList = screenplayList.stream().map(ScreenplayVO::objToVo).toList();
-        Page<ScreenplayVO> screenplayVOPage = new Page<>();
-        screenplayVOPage.setCurrent(current);
-        screenplayVOPage.setSize(size);
-        screenplayVOPage.setTotal(screenplayPage.getTotal());
-        screenplayVOPage.setRecords(screenplayVOList);
-        return screenplayVOPage;
+        String cacheKey = ScreenplayCacheConstant.getScreenplayQueryCacheKey(screenplayQueryRequest);
+        ValueQueryBean valueQueryBean = new ValueQueryBean();
+        valueQueryBean.setCacheKey(cacheKey);
+        valueQueryBean.setVOClass(ScreenplayVO.class);
+
+        return valuePageCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
+                () -> this.page(new Page<>(current, size), this.getQueryWrapper(screenplayQueryRequest)),
+                ScreenplayVO::listObjToVo);
     }
 }
