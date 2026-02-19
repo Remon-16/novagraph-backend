@@ -108,27 +108,20 @@ public class UserRedisLuaScriptConstant {
             local score = ARGV[3]              --  score
             local expTime = ARGV[4]             -- time
             
-            -- 1. 检查是否已点赞（避免重复操作）
-            if redis.call('HEXISTS', userHisKey, postId) == 1 then
-               return -1  -- 已点赞，返回 -1 表示失败
-            end
-            
-            -- 2. 获取旧值（不存在则默认为 0）
+            -- 1. 获取旧值（不存在则默认为 0）
             local hashKey = userId .. ':' .. postId
             local oldNumber = tonumber(redis.call('HGET', tempHisKey, hashKey) or 0)
             local oldPlayCount = tonumber(redis.call('GET', screenplayKey) or 0)
             
-            -- 3. 计算新值
+            -- 2. 计算新值
             local newNumber = oldNumber + 1
             local newPlayCount = oldPlayCount + 1
             
-            -- 4. 原子性更新：写入临时计数 + 标记用户已点赞
+            -- 3. 原子性更新：写入临时计数 + 标记用户已点赞
             redis.call('HSET', tempHisKey, hashKey, newNumber)
             redis.call('SET', screenplayKey, newPlayCount)
-            redis.call('ZADD', userHisKey, score, postId .. '::' .. 1)
             
             redis.call('EXPIRE', screenplayKey, expTime)
-            redis.call('EXPIRE', userHisKey, expTime)
             
             return 1  -- 返回 1 表示成功
             """, Long.class);
