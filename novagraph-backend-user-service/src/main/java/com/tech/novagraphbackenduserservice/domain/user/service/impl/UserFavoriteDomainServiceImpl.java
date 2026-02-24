@@ -195,6 +195,21 @@ public class UserFavoriteDomainServiceImpl extends ServiceImpl<UserFavoriteMappe
         }
     }
 
+    @Override
+    public Long getUserFavoriteCountForLogin(Long userId) {
+        String userFavoriteTotalKey = UserCacheConstant.getUserFavoriteTotalKey(userId);
+        Object value = cacheManager.getValueCache(userFavoriteTotalKey);
+        if (value != null) {
+            return (Long) value;
+        }else {
+            QueryWrapper<UserFavorite> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("userId", userId);
+            Long count = this.count(queryWrapper);
+            cacheManager.putValueToCache(userFavoriteTotalKey, count);
+            return count;
+        }
+    }
+
     private void putCaffineIfPresent(Long userId, Long screenplayId, Long folderId, Integer favoriteState){
         if(userId == null || screenplayId == null || folderId == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

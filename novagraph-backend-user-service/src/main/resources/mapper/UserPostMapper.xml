@@ -21,4 +21,53 @@
         id,userId,content,postType,quotedId,visibility,
         createTime,editTime,updateTime,isDelete
     </sql>
+
+    <select id="selectUserPostWithStatsPage" resultType="com.tech.novagraphbackendmodel.user.entity.UserPostWithStats">
+        SELECT
+        up.id,
+        up.userId,
+        up.content,
+        up.postType,
+        up.quotedId,
+        up.visibility,
+        up.editTime,
+        up.createTime,
+        up.updateTime,
+        upt.thumbCount
+        FROM
+        user_post up
+        LEFT JOIN
+        user_post_statistics upt ON up.id = upt.postId
+        <where>
+            up.isDelete = 0
+            AND up.visibility = 1
+            <if test="request.loginUserId != null ">
+                AND EXISTS(
+                SELECT 1 FROM user_follow uf
+                WHERE uf.isDelete = 0
+                AND uf.userId = #{request.loginUserId}
+                AND uf.followingId = up.userId
+                )
+            </if>
+            <if test="request.targetUserId != null ">
+                AND up.userId = #{request.targetUserId}
+            </if>
+            <if test="request.postIdList != null and request.postIdList.size() > 0">
+                AND up.id IN
+                <foreach collection="request.postIdList" item="postId" open="(" separator="," close=")">
+                    #{postId}
+                </foreach>
+            </if>
+        </where>
+
+        <if test="request.sortField != null and request.sortField != ''">
+            ORDER BY up.${request.sortField}
+            <if test="request.sortOrder != null and request.sortOrder != ''">
+                <choose>
+                    <when test="request.sortOrder == 'ascend'">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
+            </if>
+        </if>
+    </select>
 </mapper>

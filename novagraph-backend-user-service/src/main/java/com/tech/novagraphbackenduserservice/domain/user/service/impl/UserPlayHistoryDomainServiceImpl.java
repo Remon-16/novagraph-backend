@@ -126,6 +126,23 @@ public class UserPlayHistoryDomainServiceImpl extends ServiceImpl<UserPlayHistor
         }
     }
 
+    @Override
+    public Long getUserPlayHistoryCountForLogin(Long userId) {
+        String userHisTotalKey = UserCacheConstant.getUserHisTotalKey(userId);
+        Object value = cacheManager.getValueCache(userHisTotalKey);
+
+        if(value != null) {
+            return (Long) value;
+        }else {
+            QueryWrapper<UserPlayHistory> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("userId", userId);
+            Long count = this.count(queryWrapper);
+            cacheManager.putValueToCache(userHisTotalKey, count);
+            return count;
+        }
+
+    }
+
     private QueryWrapper<UserPlayHistory> getQueryWrapper(UserPlayHistoryQueryRequest userPlayHistoryQueryRequest){
         QueryWrapper<UserPlayHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userId", userPlayHistoryQueryRequest.getLoginUser().getId());

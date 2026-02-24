@@ -188,16 +188,44 @@ public class UserFollowDomainServiceImpl extends ServiceImpl<UserFollowMapper, U
         String UserFollowerKey = UserCacheConstant.buildRedisKey(UserCacheConstant.getUserFollowerKey(userId.toString()));
 
         followingList.forEach(UserFollow -> {
-            Double score = (double) UserFollow.getCreateTime().getTime();
+            Double score = (double) UserFollow.getId();
             cacheManager.zSetAdd(UserFollowingKey, UserFollow.getFollowingId(), score);
         });
         cacheManager.putValueToCache(UserFollowingCountKey, followingList.size());
 
         followerList.forEach(UserFollow -> {
-            Double score = (double) UserFollow.getCreateTime().getTime();
+            Double score = (double) UserFollow.getId();
             cacheManager.zSetAdd(UserFollowerKey, UserFollow.getUserId(), score);
         });
         cacheManager.putValueToCache(UserFollowerCountKey, followerList.size());
+    }
+
+    @Override
+    public Long getUserFollowingCount(Long userId) {
+        String UserFollowingCountKey = UserCacheConstant.getUserFollowingCountKey(userId.toString());
+        Object value = cacheManager.getValueCache(UserFollowingCountKey);
+        if (value != null) {
+            return (Long) value;
+        }else {
+            QueryWrapper<UserFollow> followingQueryWrapper = this.getQueryWrapper(userId, FOLLOWING);
+            Long count = this.count(followingQueryWrapper);
+            cacheManager.putValueToCache(UserFollowingCountKey, count);
+            return count;
+        }
+    }
+
+    @Override
+    public Long getUserFollowerCount(Long userId) {
+        String UserFollowerCountKey = UserCacheConstant.getUserFollowerCountKey(userId.toString());
+        Object value = cacheManager.getValueCache(UserFollowerCountKey);
+        if (value != null) {
+            return (Long) value;
+        }else {
+            QueryWrapper<UserFollow> followerQueryWrapper = this.getQueryWrapper(userId, FOLLOWER);
+            Long count = this.count(followerQueryWrapper);
+            cacheManager.putValueToCache(UserFollowerCountKey, count);
+            return count;
+        }
     }
 
     private QueryWrapper<UserFollow> getQueryWrapper(Long userId, String queryType){

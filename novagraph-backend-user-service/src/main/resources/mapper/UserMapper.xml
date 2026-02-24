@@ -24,4 +24,29 @@
         userRole,roomCode,editTime,createTime,updateTime,
         isDelete
     </sql>
+
+    <select id="selectUserWithStatsById" resultType="com.tech.novagraphbackendmodel.user.entity.UserWithStats">
+        SELECT
+        u.id,
+        u.userAccount,
+        u.userName,
+        u.userAvatar,
+        u.userProfile,
+        u.userRole,
+        u.roomCode,
+        u.editTime,
+        u.createTime,
+        u.updateTime,
+        ut.userScore,
+        ut.followingCount,
+        ut.followerCount
+        FROM
+        user u
+        LEFT JOIN
+        user_statistics ut ON u.id = ut.userId
+        <where>
+            u.isDelete = 0
+            AND u.id = #{userId}
+        </where>
+    </select>
 </mapper>

@@ -27,4 +27,6 @@ public interface UserFavoriteDomainService extends IService<UserFavorite> {
     void putFavoriteListToCache(Long userId);
 
     void putFavoriteListToCache(List<UserFavorite> userFavoriteList, Long userId);
+
+    Long getUserFavoriteCountForLogin(Long userId);
 }

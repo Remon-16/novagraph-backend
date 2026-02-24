@@ -294,7 +294,6 @@ create table if not exists user_post_statistics
 (
     id             bigint auto_increment comment 'id' primary key,
     postId         bigint                                 not null comment '动态 id',
-    userScore      bigint       default 0                 null comment '积分余额',
     thumbCount     bigint       default 0                 null comment '点赞数量',
     commentCount   bigint       default 0                 null comment '评论数量',
     shareCount     bigint       default 0                 null comment '分享数量',

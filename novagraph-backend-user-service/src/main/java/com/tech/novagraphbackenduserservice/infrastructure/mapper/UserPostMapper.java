@@ -1,10 +1,12 @@
 package com.tech.novagraphbackenduserservice.infrastructure.mapper;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tech.novagraphbackendmodel.dto.user.UserPostQueryRequest;
 import com.tech.novagraphbackendmodel.user.entity.UserPost;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tech.novagraphbackendmodel.user.entity.UserPostWithStats;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Map;
 
 /**
 * @author Remon
@@ -13,7 +15,8 @@ import java.util.Map;
 * @Entity com.tech.novagraphbackendmodel.user.entity.UserPost
 */
 public interface UserPostMapper extends BaseMapper<UserPost> {
-
+    Page<UserPostWithStats> selectUserPostWithStatsPage(Page<UserPostWithStats> page,
+                                                        @Param("request") UserPostQueryRequest request);
 }
 
 

@@ -22,4 +22,6 @@ public interface UserPlayHistoryDomainService extends IService<UserPlayHistory> 
     Page<UserPlayHistoryVO> getUserPlayHistory(UserPlayHistoryQueryRequest userPlayHistoryQueryRequest);
 
     Long getUserPlayHistoryCount(Long spId);
+
+    Long getUserPlayHistoryCountForLogin(Long userId);
 }

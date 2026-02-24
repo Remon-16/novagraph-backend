@@ -7,7 +7,6 @@
     <resultMap id="BaseResultMap" type="com.tech.novagraphbackendmodel.user.entity.UserPostStatistics">
             <id property="id" column="id" />
             <result property="postId" column="postId" />
-            <result property="userScore" column="userScore" />
             <result property="thumbCount" column="thumbCount" />
             <result property="commentCount" column="commentCount" />
             <result property="shareCount" column="shareCount" />
@@ -19,7 +18,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,postId,userScore,thumbCount,commentCount,shareCount,
+        id,postId,thumbCount,commentCount,shareCount,
         quotedCount,editTime,createTime,updateTime,isDelete
     </sql>
 

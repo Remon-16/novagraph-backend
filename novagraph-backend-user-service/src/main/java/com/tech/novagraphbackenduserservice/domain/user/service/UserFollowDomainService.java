@@ -28,4 +28,8 @@ public interface UserFollowDomainService extends IService<UserFollow> {
     Page<UserVO> getFollowerPage(FollowQueryRequest followQueryRequest);
 
     void putUserFollowToCache(Long userId);
+
+    Long getUserFollowingCount(Long userId);
+
+    Long getUserFollowerCount(Long userId);
 }

@@ -17,7 +17,13 @@ public class UserPostQueryRequest extends PageRequest {
      * 动态 id
      */
     private List<Long> postIdList;
-
+    /**
+     * 目标用户 id 比如 查询某一个用户动态主页
+     */
+    private Long targetUserId;
+    /**
+     * 当前登录用户 id 查询的是关注用户的动态
+     */
     private Long loginUserId;
 
 }

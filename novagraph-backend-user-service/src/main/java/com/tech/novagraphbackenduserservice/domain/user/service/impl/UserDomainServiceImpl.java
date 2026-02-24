@@ -18,6 +18,9 @@ import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import com.tech.novagraphbackendserviceclient.GraphFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserRepository;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserDomainService;
+import com.tech.novagraphbackenduserservice.domain.user.service.UserFavoriteDomainService;
+import com.tech.novagraphbackenduserservice.domain.user.service.UserFollowDomainService;
+import com.tech.novagraphbackenduserservice.domain.user.service.UserPlayHistoryDomainService;
 import com.tech.novagraphbackenduserservice.infrastructure.mapper.UserMapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,6 +45,18 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private SingleValueCacheTemplate singleValueCacheTemplate;
+
+    @Resource
+    private UserMapper userMapper;
+
+    @Resource
+    private UserFollowDomainService userFollowDomainService;
+
+    @Resource
+    private UserPlayHistoryDomainService userPlayHistoryDomainService;
+
+    @Resource
+    private UserFavoriteDomainService userFavoriteDomainService;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -121,12 +136,35 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public LoginUserVO getLoginUserVO(HttpServletRequest request) {
         User currentUser = getUserFromRequest(request);
-        // 数据库查完整信息
-        currentUser = this.getById(currentUser.getId());
-        if (currentUser == null) {
+        Long userId = currentUser.getId();
+        // 查完整信息
+        ValueQueryBean valueQueryBean = new ValueQueryBean();
+        valueQueryBean.setCacheKey(UserCacheConstant.getUserInfoKey(userId));
+        valueQueryBean.setVOClass(LoginUserVO.class);
+
+        LoginUserVO loginUserVO =  singleValueCacheTemplate.valueQuery(userId, valueQueryBean,
+                () -> userMapper.selectUserWithStatsById(userId),
+                LoginUserVO::objWithStateToVO
+        );
+        if (loginUserVO == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        return this.getLoginUserVO(currentUser);
+
+        // 插入 关注 粉丝数量 收藏数量 播放历史数量
+        Long followingCount = userFollowDomainService.getUserFollowingCount(userId);
+        Long followerCount = userFollowDomainService.getUserFollowerCount(userId);
+
+        // 这两个数据库查询相对比较重，可以赌一波缓存没失效
+        Long playHistoryCount = userPlayHistoryDomainService.getUserPlayHistoryCount(userId);
+        Long userFavoriteCount = userFavoriteDomainService.getUserFavoriteCount(userId);
+
+        loginUserVO.setFollowingCount(followingCount);
+        loginUserVO.setFollowerCount(followerCount);
+        loginUserVO.setPlayHistoryCount(playHistoryCount);
+        loginUserVO.setUserFavoriteCount(userFavoriteCount);
+        // TODO　插入积分余额
+
+        return loginUserVO;
     }
 
     @Override

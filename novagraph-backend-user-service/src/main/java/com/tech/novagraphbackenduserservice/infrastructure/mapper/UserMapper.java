@@ -3,6 +3,9 @@ package com.tech.novagraphbackenduserservice.infrastructure.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tech.novagraphbackendmodel.user.entity.User;
+import com.tech.novagraphbackendmodel.user.entity.UserWithStats;
+import org.apache.ibatis.annotations.Param;
+
 
 /**
 * @author Remon
@@ -11,7 +14,7 @@ import com.tech.novagraphbackendmodel.user.entity.User;
 * @Entity com.tech.novagraphbackendmodel.user.entity.User
 */
 public interface UserMapper extends BaseMapper<User> {
-
+    UserWithStats selectUserWithStatsById(@Param("userId") Long userId);
 }
 
 

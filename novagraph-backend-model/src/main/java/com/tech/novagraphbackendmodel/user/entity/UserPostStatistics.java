@@ -26,11 +26,6 @@ public class UserPostStatistics implements Serializable {
     private Long postId;
 
     /**
-     * 积分余额
-     */
-    private Long userScore;
-
-    /**
      * 点赞数量
      */
     private Long thumbCount;

@@ -14,12 +14,15 @@ import com.tech.novagraphbackendmodel.dto.user.UserPostAddRequest;
 import com.tech.novagraphbackendmodel.dto.user.UserPostQueryRequest;
 import com.tech.novagraphbackendmodel.user.constant.UserCacheConstant;
 import com.tech.novagraphbackendmodel.user.entity.UserPost;
+import com.tech.novagraphbackendmodel.user.entity.UserPostWithStats;
 import com.tech.novagraphbackendmodel.user.valueobject.UserPostEnum;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import com.tech.novagraphbackendmodel.vo.user.UserPostVO;
 import com.tech.novagraphbackendserviceclient.GraphFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserPostRepository;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserPostDomainService;
+import com.tech.novagraphbackenduserservice.domain.user.service.UserPostThumbDomainService;
+import com.tech.novagraphbackenduserservice.infrastructure.mapper.UserPostMapper;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,12 @@ public class UserPostDomainServiceImpl implements UserPostDomainService {
 
     @Resource
     private GraphFeignClient graphFeignClient;
+
+    @Resource
+    private UserPostMapper userPostMapper;
+
+    @Resource
+    private UserPostThumbDomainService userPostThumbDomainService;
 
     @Override
     public UserPost saveOrUpdate(UserPostAddRequest userPostAddRequest) {
@@ -84,19 +93,26 @@ public class UserPostDomainServiceImpl implements UserPostDomainService {
         zSetSaveBean.setSortedTotalKey(sortedTotalKey);
 
         return ZSetPageCacheTemplate.zSetQuery(userPostQueryRequest, ZSetQueryBean, zSetSaveBean,
-                () -> userPostRepository.page(new Page<>(current, size), getQueryWrapper(userPostQueryRequest)),
-                this::EntityToVO
+                () -> {
+                    Page<UserPostWithStats> page = new Page<>(current, size);
+                    return userPostMapper.selectUserPostWithStatsPage(page, userPostQueryRequest);
+                },
+                (userPostList) -> this.entityToVO(userPostList, userPostQueryRequest.getLoginUserId())
                 );
     }
 
-    private List<UserPostVO> EntityToVO(List<UserPost> userPostList){
+    private List<UserPostVO> entityToVO(List<UserPostWithStats> userPostList, Long loginUserId) {
         List<UserPostVO> userPostVOList = new ArrayList<>();
-        for (UserPost userPost : userPostList) {
+        for (UserPostWithStats userPost : userPostList) {
             UserPostVO userPostVO = new UserPostVO();
             BeanUtils.copyProperties(userPost, userPostVO);
             if(UserPostEnum.SCREENPLAY.getValue().equals(userPost.getPostType())){
                 ScreenplayVO screenplayVO = graphFeignClient.getScreenplayById(userPost.getQuotedId());
                 userPostVO.setScreenplayVO(screenplayVO);
+            }
+            if(loginUserId != null){
+                Boolean hasThumb = userPostThumbDomainService.hasThumb(userPost.getId(), loginUserId);
+                userPostVO.setHasThumb(hasThumb);
             }
             userPostVOList.add(userPostVO);
         }
