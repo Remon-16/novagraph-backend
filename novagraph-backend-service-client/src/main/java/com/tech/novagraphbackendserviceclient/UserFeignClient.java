@@ -4,6 +4,7 @@ import com.alibaba.cloud.commons.lang.StringUtils;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendmodel.user.entity.User;
+import com.tech.novagraphbackendmodel.vo.user.UserFavoriteVO;
 import com.tech.novagraphbackendmodel.vo.user.UserListVO;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,16 @@ public interface UserFeignClient {
      */
     @PostMapping("/post/ids")
     UserListVO listByIds(@RequestBody Set<Long> idList);
+
+    @GetMapping("/get/userHasFavorite")
+    UserFavoriteVO userHasFavorite(Long screenplayId, Long userId);
+
+    @GetMapping("/get/getUserFavoriteCount")
+    Long getUserFavoriteCount(Long screenplayId);
+
+    @GetMapping("/get/getUserPlayHistoryCount")
+    Long getUserPlayHistoryCount(Long spId);
+
 
     /**
      * 获取当前登录用户

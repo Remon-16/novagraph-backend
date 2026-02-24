@@ -24,4 +24,60 @@
         plotTree,userId,editTime,createTime,updateTime,
         isDelete
     </sql>
+
+    <select id="selectScreenplayWithStats" resultType="com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats">
+        SELECT
+        s.id,
+        s.name,
+        s.introduction,
+        s.category,
+        s.tags,
+        s.cover,
+        s.plotTree,
+        s.userId,
+        s.editTime,
+        s.createTime,
+        s.updateTime,
+        st.thumbCount,
+        st.favoriteCount,
+        st.playCount
+        FROM
+        screenplay s
+        LEFT JOIN
+        screenplay_statistics st ON s.id = st.screenplayId
+        <where>
+            s.isDelete = 0
+            <if test="request.name != null and request.name != ''">
+                AND s.name LIKE CONCAT('', #{request.name}, '%')
+            </if>
+
+            <if test="request.category != null and request.category != ''">
+                AND s.category = #{request.category}
+            </if>
+
+
+            <if test="request.startEditTime != null">
+                AND s.createTime &gt;= #{request.startEditTime}
+            </if>
+            <if test="request.endEditTime != null">
+                AND s.createTime &lt;= #{request.endEditTime}
+            </if>
+
+            <if test="request.tags != null and request.tags.size() > 0">
+                <foreach collection="request.tags" item="tag" >
+                    AND s.tags LIKE CONCAT('%', #{tag}, '%')
+                </foreach>
+            </if>
+        </where>
+
+        <if test="request.sortField != null and request.sortField != ''">
+            ORDER BY s.${request.sortField}
+            <if test="request.sortOrder != null and request.sortOrder != ''">
+                <choose>
+                    <when test="request.sortOrder == 'ascend'">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
+            </if>
+        </if>
+    </select>
 </mapper>

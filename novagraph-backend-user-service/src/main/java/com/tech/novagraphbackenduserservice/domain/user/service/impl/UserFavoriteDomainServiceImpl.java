@@ -168,6 +168,33 @@ public class UserFavoriteDomainServiceImpl extends ServiceImpl<UserFavoriteMappe
         this.putFavoriteListToCache(userFavoriteList, userId);
     }
 
+    @Override
+    public UserFavoriteVO userHasFavorite(Long screenplayId, Long userId) {
+        // TODO 换缓存 一般不集中查询
+        QueryWrapper<UserFavorite> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", userId);
+        queryWrapper.eq("screenplayId", screenplayId);
+        UserFavorite userFavorite = this.getOne(queryWrapper);
+
+        if (userFavorite != null) {
+            UserFavoriteVO userFavoriteVO = UserFavoriteVO.objToVo(userFavorite);
+            userFavoriteVO.setHasFavorite(true);
+            return userFavoriteVO;
+        }
+        return null;
+    }
+
+    @Override
+    public Long getUserFavoriteCount(Long screenplayId) {
+        String spFavoriteKey = UserCacheConstant.getSpFavoriteKey(screenplayId);
+        Object value = cacheManager.getValueCache(spFavoriteKey);
+        if (value != null) {
+            return (Long) value;
+        }else {
+            return null;
+        }
+    }
+
     private void putCaffineIfPresent(Long userId, Long screenplayId, Long folderId, Integer favoriteState){
         if(userId == null || screenplayId == null || folderId == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

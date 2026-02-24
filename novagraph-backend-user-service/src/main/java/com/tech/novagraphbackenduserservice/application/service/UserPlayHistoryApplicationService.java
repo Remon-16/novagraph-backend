@@ -1,16 +1,13 @@
-package com.tech.novagraphbackenduserservice.domain.user.service;
+package com.tech.novagraphbackenduserservice.application.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.tech.novagraphbackendmodel.dto.user.UserPlayHistoryAddRequest;
 import com.tech.novagraphbackendmodel.dto.user.UserPlayHistoryQueryRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
-import com.tech.novagraphbackendmodel.user.entity.UserPlayHistory;
 import com.tech.novagraphbackendmodel.vo.user.UserPlayHistoryVO;
 
-import java.util.List;
+public interface UserPlayHistoryApplicationService {
 
-public interface UserPlayHistoryDomainService extends IService<UserPlayHistory> {
     /**
      * 添加一条用户浏览记录
      */

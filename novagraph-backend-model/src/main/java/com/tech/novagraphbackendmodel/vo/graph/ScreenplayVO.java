@@ -2,13 +2,12 @@ package com.tech.novagraphbackendmodel.vo.graph;
 
 import cn.hutool.json.JSONUtil;
 import com.tech.novagraphbackendmodel.graph.entity.Screenplay;
+import com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 public class ScreenplayVO {
@@ -46,9 +45,19 @@ public class ScreenplayVO {
     private String plotTree;
 
     /**
+     * 播放数量
+     */
+    private Long playCount;
+
+    /**
      * 点赞数量
      */
     private Long thumbCount;
+
+    /**
+     * 收藏数量
+     */
+    private Long favoriteCount;
 
     /**
      * 用户 id
@@ -59,6 +68,10 @@ public class ScreenplayVO {
      * 用户是否对该内容点赞
      */
     private Boolean hasThumb;
+    /**
+     * 用户是否对该内容收藏
+     */
+    private Boolean hasFavorite;
 
     /**
      * 编辑时间
@@ -91,5 +104,21 @@ public class ScreenplayVO {
 
     public static List<ScreenplayVO> listObjToVo(List<Screenplay> screenplayList){
         return screenplayList.stream().map(ScreenplayVO::objToVo).toList();
+    }
+
+    public static ScreenplayVO objWithStatsToVo(ScreenplayWithStats screenplay){
+        ScreenplayVO screenplayVO = new ScreenplayVO();
+        BeanUtils.copyProperties(screenplay, screenplayVO);
+        // 类型不同，需要转换
+        if(screenplay.getTags() != null && !screenplay.getTags().isEmpty()) {
+            screenplayVO.setTags(JSONUtil.toList(screenplay.getTags(), String.class));
+        }else{
+            screenplayVO.setTags(List.of());
+        }
+        return screenplayVO;
+    }
+
+    public static List<ScreenplayVO> listObjWithStatsToVo(List<ScreenplayWithStats> screenplayList){
+        return screenplayList.stream().map(ScreenplayVO::objWithStatsToVo).toList();
     }
 }

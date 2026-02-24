@@ -37,6 +37,10 @@ public class UserFavoriteVO {
      * 剧本
      */
     private ScreenplayVO screenplayVo;
+    /**
+     * 用户是否收藏
+     */
+    private Boolean hasFavorite;
 
     /**
      * 创建时间

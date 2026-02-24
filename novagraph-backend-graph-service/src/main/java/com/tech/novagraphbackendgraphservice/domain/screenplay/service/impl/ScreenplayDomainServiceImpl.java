@@ -12,6 +12,7 @@ import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendgraphservice.domain.screenplay.repository.ScreenplayRepository;
 import com.tech.novagraphbackendgraphservice.domain.screenplay.service.ScreenplayDomainService;
+import com.tech.novagraphbackendgraphservice.domain.screenplay.service.ScreenplayStatisticsDomainService;
 import com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayMapper;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayAddRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayQueryRequest;
@@ -19,6 +20,7 @@ import com.tech.novagraphbackendmodel.dto.graph.ScreenplayUpdateRequest;
 import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.Screenplay;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
+import com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +38,12 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
 
     @Resource
     private ValuePageCacheTemplate valuePageCacheTemplate;
+
+    @Resource
+    private ScreenplayMapper screenplayMapper;
+
+    @Resource
+    private ScreenplayStatisticsDomainService screenplayStatisticsDomainService;
 
     @Override
     public Screenplay addScreenplay(ScreenplayAddRequest screenplayAddRequest) {
@@ -115,9 +123,17 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
         ValueQueryBean valueQueryBean = new ValueQueryBean();
         valueQueryBean.setCacheKey(cacheKey);
         valueQueryBean.setVOClass(ScreenplayVO.class);
+        // 1 查询出 Page<ScreenplayVO>
+        Page<ScreenplayVO> resPage = valuePageCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
+                () -> {
+                    Page<ScreenplayWithStats> page = new Page<>(current, size);
+                    return screenplayMapper.selectScreenplayWithStats(page, screenplayQueryRequest);
+                },
+                ScreenplayVO::listObjWithStatsToVo);
 
-        return valuePageCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
-                () -> this.page(new Page<>(current, size), this.getQueryWrapper(screenplayQueryRequest)),
-                ScreenplayVO::listObjToVo);
+        // 2 从缓存中查询最新的统计数据（如果缓存没命中，直接把现有的 Put到缓存中）
+        List<ScreenplayVO> screenplayVOList = resPage.getRecords();
+        resPage.setRecords(screenplayStatisticsDomainService.getScreenplayStatisticsList(screenplayVOList, screenplayQueryRequest.getUserId()));
+        return resPage;
     }
 }

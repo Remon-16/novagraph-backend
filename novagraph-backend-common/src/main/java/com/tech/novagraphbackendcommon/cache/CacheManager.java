@@ -276,6 +276,11 @@ public class CacheManager {
         }
     }
 
+    public Boolean zSetHasMember(String key, Object member){
+        Double v = redisTemplate.opsForZSet().score(key, member);
+        return v != null;
+    }
+
     public Set<Object> zSetPageQuery(String key, Long page, Long size){
         return this.zSetPageQuery(key, page, size, ASC);
     }
