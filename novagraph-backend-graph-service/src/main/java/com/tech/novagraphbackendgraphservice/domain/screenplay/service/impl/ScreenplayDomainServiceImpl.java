@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tech.novagraphbackendcommon.cache.ValuePageCacheTemplate;
 import com.tech.novagraphbackendcommon.cache.bean.ValueQueryBean;
+import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendgraphservice.domain.screenplay.repository.ScreenplayRepository;
@@ -16,14 +17,18 @@ import com.tech.novagraphbackendgraphservice.domain.screenplay.service.Screenpla
 import com.tech.novagraphbackendgraphservice.infrastructure.mapper.ScreenplayMapper;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayAddRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayQueryRequest;
+import com.tech.novagraphbackendmodel.dto.graph.ScreenplayReviewRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayUpdateRequest;
 import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.Screenplay;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats;
+import com.tech.novagraphbackendmodel.graph.valueobject.ScreenplayReviewStatusEnum;
+import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -74,8 +79,11 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
         valueQueryBean.setVOClass(ScreenplayVO.class);
 
         Page<ScreenplayVO> page = valuePageCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
-                () -> this.page(new Page<>(1, 10), this.getQueryWrapper(screenplayQueryRequest)),
-                ScreenplayVO::listObjToVo);
+                () -> {
+                    Page<ScreenplayWithStats> page1 = new Page<>(1, 10);
+                    return screenplayMapper.selectScreenplayWithStats(page1, screenplayQueryRequest);
+                },
+                ScreenplayVO::listObjWithStatsToVo);
 
         return page.getRecords().getFirst();
     }
@@ -135,5 +143,28 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
         List<ScreenplayVO> screenplayVOList = resPage.getRecords();
         resPage.setRecords(screenplayStatisticsDomainService.getScreenplayStatisticsList(screenplayVOList, screenplayQueryRequest.getUserId()));
         return resPage;
+    }
+
+    @Override
+    public void doScreenplayReview(ScreenplayReviewRequest screenplayReviewRequest, User loginUser) {
+        ThrowUtils.throwIf(screenplayReviewRequest == null, ErrorCode.PARAMS_ERROR);
+        Long spId = screenplayReviewRequest.getId();
+        ScreenplayReviewStatusEnum screenplayReviewStatusEnum = ScreenplayReviewStatusEnum.getEnumByValue(screenplayReviewRequest.getReviewStatus());
+        if(spId == null || screenplayReviewStatusEnum == null || ScreenplayReviewStatusEnum.REVIEWING.equals(screenplayReviewStatusEnum)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 判断剧本是否存在
+        Screenplay oldScreenplay = screenplayMapper.selectById(spId);
+        ThrowUtils.throwIf(oldScreenplay == null, ErrorCode.NOT_FOUND_ERROR);
+        if(oldScreenplay.getReviewStatus().equals(screenplayReviewRequest.getReviewStatus())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请勿重复审核");
+        }
+        // 更新
+        Screenplay screenplay = new Screenplay();
+        BeanUtils.copyProperties(screenplayReviewRequest, screenplay);
+        screenplay.setReviewerId(loginUser.getId());
+        screenplay.setReviewTime(screenplay.getReviewTime());
+        boolean result = this.updateById(screenplay);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
 }

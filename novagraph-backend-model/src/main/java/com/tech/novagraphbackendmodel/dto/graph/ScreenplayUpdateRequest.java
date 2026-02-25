@@ -33,6 +33,11 @@ public class ScreenplayUpdateRequest {
     private List<String> tags;
 
     /**
+     * 可见性：1-公开，2-私密...
+     */
+    private Integer visibility;
+
+    /**
      * 剧本封面连接
      */
     private String cover;

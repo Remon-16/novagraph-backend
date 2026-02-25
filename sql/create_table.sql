@@ -63,6 +63,7 @@ create table if not exists screenplay
     cover        varchar(1024)                          null comment '剧本封面链接',
     plotTree     longtext                               null comment '剧情树的JSON字符串',
     userId       bigint                                 not null comment '用户 id',
+    visibility   tinyint      default 2                 not null comment  '可见性：1-公开，2-私密...',
     editTime     datetime     default CURRENT_TIMESTAMP not null comment '编辑时间',
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
@@ -73,6 +74,13 @@ create table if not exists screenplay
     INDEX idx_tags (tags),                 -- 提升基于标签的查询性能
     INDEX idx_userId (userId)              -- 提升基于用户 ID 的查询性能
 ) comment '剧本表' collate = utf8mb4_unicode_ci;
+
+ALTER TABLE screenplay
+    -- 添加新列
+    ADD COLUMN reviewStatus INT DEFAULT 0 NOT NULL COMMENT '审核状态：0-待审核; 1-通过; 2-拒绝',
+    ADD COLUMN reviewMessage VARCHAR(512) NULL COMMENT '审核信息',
+    ADD COLUMN reviewerId BIGINT NULL COMMENT '审核人 ID',
+    ADD COLUMN reviewTime DATETIME NULL COMMENT '审核时间';
 
 -- 剧本-章节
 create table if not exists screenplay_section
@@ -258,7 +266,7 @@ CREATE TABLE user_post (
      content      text                                   not null comment '文本内容',
      postType     varchar(128)                          not null comment '类型：text-文字，screenplay-剧本，post-动态...',
      quotedId     bigint                                 null comment '引用 id',
-     visibility   tinyint  default 0                     not null comment  '可见性：1-公开，2-私密...',
+     visibility   tinyint  default 2                     not null comment  '可见性：1-公开，2-私密...',
 
      createTime   datetime default CURRENT_TIMESTAMP not null comment '创建时间',
      editTime     datetime default CURRENT_TIMESTAMP not null comment '编辑时间',

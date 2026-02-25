@@ -13,6 +13,11 @@
             <result property="cover" column="cover" />
             <result property="plotTree" column="plotTree" />
             <result property="userId" column="userId" />
+            <result property="visibility" column="visibility" />
+            <result property="reviewStatus" column="reviewStatus" />
+            <result property="reviewMessage" column="reviewMessage" />
+            <result property="reviewerId" column="reviewerId" />
+            <result property="reviewTime" column="reviewTime" />
             <result property="editTime" column="editTime" />
             <result property="createTime" column="createTime" />
             <result property="updateTime" column="updateTime" />
@@ -22,7 +27,7 @@
     <sql id="Base_Column_List">
         id,name,introduction,category,tags,cover,
         plotTree,userId,editTime,createTime,updateTime,
-        isDelete
+        isDelete,visibility,reviewStatus,reviewMessage,reviewerId,reviewTime
     </sql>
 
     <select id="selectScreenplayWithStats" resultType="com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats">
@@ -47,6 +52,19 @@
         screenplay_statistics st ON s.id = st.screenplayId
         <where>
             s.isDelete = 0
+
+            <if test="request.id != null">
+                AND s.id = #{request.id}
+            </if>
+
+            <if test="request.visibility != null">
+                AND s.visibility = #{request.visibility}
+            </if>
+
+            <if test="request.reviewStatus != null">
+                AND s.reviewStatus = #{request.reviewStatus}
+            </if>
+
             <if test="request.name != null and request.name != ''">
                 AND s.name LIKE CONCAT('', #{request.name}, '%')
             </if>
@@ -54,7 +72,6 @@
             <if test="request.category != null and request.category != ''">
                 AND s.category = #{request.category}
             </if>
-
 
             <if test="request.startEditTime != null">
                 AND s.createTime &gt;= #{request.startEditTime}

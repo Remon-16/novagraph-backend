@@ -63,6 +63,31 @@ public class ScreenplayWithStats implements Serializable {
     private Long userId;
 
     /**
+     * 可见性：1-公开，2-私密...
+     */
+    private Integer visibility;
+
+    /**
+     * 审核状态：0-待审核; 1-通过; 2-拒绝
+     */
+    private Integer reviewStatus;
+
+    /**
+     * 审核信息
+     */
+    private String reviewMessage;
+
+    /**
+     * 审核人 ID
+     */
+    private Long reviewerId;
+
+    /**
+     * 审核时间
+     */
+    private Date reviewTime;
+
+    /**
      * 编辑时间
      */
     private Date editTime;
