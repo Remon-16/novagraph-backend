@@ -1,6 +1,7 @@
 package com.tech.novagraphbackenduserservice.domain.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
@@ -61,4 +62,6 @@ public interface UserDomainService extends IService<User> {
      * @return
      */
     UserVO getUserVO(User user);
+
+    void canalHandleUser(List<CanalHandleVO> canalHandleVoList);
 }

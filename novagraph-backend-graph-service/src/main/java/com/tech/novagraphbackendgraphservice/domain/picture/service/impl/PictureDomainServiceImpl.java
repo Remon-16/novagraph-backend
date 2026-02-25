@@ -5,10 +5,12 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tech.novagraphbackendcommon.cache.CacheManager;
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
@@ -30,13 +32,11 @@ import com.tech.novagraphbackendmodel.vo.user.UserListVO;
 import com.tech.novagraphbackendserviceclient.UserFeignClient;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -58,6 +58,9 @@ public class PictureDomainServiceImpl extends ServiceImpl<PictureMapper, Picture
 
     @Resource
     private CacheManager cacheManager;
+
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     private final Map<String, Object> lockMap = new ConcurrentHashMap<>();
 
@@ -263,5 +266,80 @@ public class PictureDomainServiceImpl extends ServiceImpl<PictureMapper, Picture
     public String uploadUserAvatar(MultipartFile multipartFile, String uploadPathPrefix) {
         UploadPictureResult uploadPictureResult = filePictureUpload.uploadPicture(multipartFile, uploadPathPrefix);
         return uploadPictureResult.getUrl();
+    }
+
+    @Override
+    public void canalHandlePicture(List<CanalHandleVO> canalHandleVoList) {
+        canalHandleVoList.forEach(canalHandleVo -> {
+            CanalEntry.EventType eventType = canalHandleVo.getEventType();
+            Picture picture = JSONUtil.toBean(canalHandleVo.getJsonDataStr(), Picture.class);
+            if (eventType == CanalEntry.EventType.DELETE || cacheManager.getEntry_DELETE_FLAG().equals(picture.getIsDelete())) {
+                canalDeleteHandle(picture);
+            }else if (eventType == CanalEntry.EventType.UPDATE) {
+                canalUpdateHandle(picture);
+            }
+        });
+    }
+
+    private void canalDeleteHandle(Picture picture) {
+        String keyHead = PictureCacheConstant.PICTURE_QUERY_CACHE;
+        Set<String> targetKeys = redisTemplate.keys(PictureCacheConstant.buildRedisKey(keyHead + "*"));
+        PictureVO newpictureVO = PictureVO.objToVo(picture);
+        for (String targetKey : targetKeys) {
+            if (targetKey == null || targetKey.isEmpty()) {
+                continue;
+            }
+            Page<PictureVO> pictureVOPage = this.getPicturePage(targetKey);
+            for (PictureVO pictureVO : pictureVOPage.getRecords()) {
+                if(Objects.equals(newpictureVO.getId(), pictureVO.getId())) {
+                    String k = targetKey.replace(CacheUtils.APP_NAME + ":", "");
+                    cacheManager.removeValueCache(k);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void canalUpdateHandle(Picture picture) {
+        String keyHead = PictureCacheConstant.PICTURE_QUERY_CACHE;
+        Set<String> targetKeys = redisTemplate.keys(PictureCacheConstant.buildRedisKey(keyHead + "*"));
+        PictureVO newpictureVO = PictureVO.objToVo(picture);
+        for (String targetKey : targetKeys) {
+            if(targetKey == null || targetKey.isEmpty()){
+                continue;
+            }
+            Page<PictureVO> pictureVOPage = this.getPicturePage(targetKey);
+            boolean needUpdate = false;
+            // 更新
+            for (PictureVO pictureVO : pictureVOPage.getRecords()) {
+                if(Objects.equals(newpictureVO.getId(), pictureVO.getId())) {
+                    updateSinglePicture(pictureVO, newpictureVO);
+                    needUpdate = true;
+                }
+            }
+            if(needUpdate){
+                String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
+                cacheManager.putValueToCache(targetKey.replace(CacheUtils.APP_NAME + ":", ""), cacheValue);
+            }
+        }
+    }
+
+    private Page<PictureVO> getPicturePage(String targetKey){
+        Object value = redisTemplate.opsForValue().get(targetKey);
+        return JSONUtil.toBean(
+                (String) value,
+                new TypeReference<>() {}, // 指定完整泛型结构
+                false // 是否忽略转换错误
+        );
+    }
+
+    private void updateSinglePicture(PictureVO sourcePictureVo, PictureVO newpictureVO){
+        sourcePictureVo.setName(newpictureVO.getName());
+        sourcePictureVo.setCategory(newpictureVO.getCategory());
+        sourcePictureVo.setTags(newpictureVO.getTags());
+        sourcePictureVo.setUrl(newpictureVO.getUrl());
+        sourcePictureVo.setThumbnailUrl(newpictureVO.getThumbnailUrl());
+        sourcePictureVo.setUpdateTime(newpictureVO.getUpdateTime());
+        sourcePictureVo.setEditTime(newpictureVO.getEditTime());
     }
 }

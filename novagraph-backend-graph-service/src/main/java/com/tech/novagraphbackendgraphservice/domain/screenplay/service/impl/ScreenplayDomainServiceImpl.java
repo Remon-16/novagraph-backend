@@ -1,16 +1,23 @@
 package com.tech.novagraphbackendgraphservice.domain.screenplay.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tech.novagraphbackendcommon.cache.CacheManager;
+import com.tech.novagraphbackendcommon.cache.SingleValueCacheTemplate;
 import com.tech.novagraphbackendcommon.cache.ValuePageCacheTemplate;
 import com.tech.novagraphbackendcommon.cache.bean.ValueQueryBean;
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
+import com.tech.novagraphbackendcommon.utils.CacheUtils;
 import com.tech.novagraphbackendgraphservice.domain.screenplay.repository.ScreenplayRepository;
 import com.tech.novagraphbackendgraphservice.domain.screenplay.service.ScreenplayDomainService;
 import com.tech.novagraphbackendgraphservice.domain.screenplay.service.ScreenplayStatisticsDomainService;
@@ -21,7 +28,7 @@ import com.tech.novagraphbackendmodel.dto.graph.ScreenplayReviewRequest;
 import com.tech.novagraphbackendmodel.dto.graph.ScreenplayUpdateRequest;
 import com.tech.novagraphbackendmodel.graph.constant.ScreenplayCacheConstant;
 import com.tech.novagraphbackendmodel.graph.entity.Screenplay;
-import com.tech.novagraphbackendmodel.graph.entity.ScreenplayThumb;
+import com.tech.novagraphbackendmodel.graph.entity.ScreenplayStatistics;
 import com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats;
 import com.tech.novagraphbackendmodel.graph.valueobject.ScreenplayReviewStatusEnum;
 import com.tech.novagraphbackendmodel.user.entity.User;
@@ -29,10 +36,12 @@ import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, Screenplay>
@@ -45,10 +54,19 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
     private ValuePageCacheTemplate valuePageCacheTemplate;
 
     @Resource
+    private SingleValueCacheTemplate singleValueCacheTemplate;
+
+    @Resource
     private ScreenplayMapper screenplayMapper;
 
     @Resource
     private ScreenplayStatisticsDomainService screenplayStatisticsDomainService;
+
+    @Resource
+    private CacheManager cacheManager;
+
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public Screenplay addScreenplay(ScreenplayAddRequest screenplayAddRequest) {
@@ -56,6 +74,10 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
         ThrowUtils.throwIf(StringUtils.isEmpty(screenplayAddRequest.getName()), ErrorCode.PARAMS_ERROR, "剧本名称为空");
         Screenplay screenplay = ScreenplayAddRequest.dtoToObj(screenplayAddRequest);
         screenplayRepository.save(screenplay);
+
+        ScreenplayStatistics screenplayStatistics = new ScreenplayStatistics();
+        screenplayStatistics.setScreenplayId(screenplay.getId());
+        screenplayStatisticsDomainService.save(screenplayStatistics);
         return screenplay;
     }
 
@@ -69,23 +91,22 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
     }
 
     @Override
-    public ScreenplayVO queryScreenplayById(Long id) {
+    public ScreenplayVO queryScreenplayById(Long id, Long userId) {
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "ID不能为空");
         ScreenplayQueryRequest screenplayQueryRequest = new ScreenplayQueryRequest();
         screenplayQueryRequest.setId(id);
-        String cacheKey = ScreenplayCacheConstant.getScreenplayQueryCacheKey(screenplayQueryRequest);
+        String cacheKey = ScreenplayCacheConstant.getScreenplayCacheKey(id.toString());
         ValueQueryBean valueQueryBean = new ValueQueryBean();
         valueQueryBean.setCacheKey(cacheKey);
         valueQueryBean.setVOClass(ScreenplayVO.class);
 
-        Page<ScreenplayVO> page = valuePageCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
-                () -> {
-                    Page<ScreenplayWithStats> page1 = new Page<>(1, 10);
-                    return screenplayMapper.selectScreenplayWithStats(page1, screenplayQueryRequest);
-                },
-                ScreenplayVO::listObjWithStatsToVo);
-
-        return page.getRecords().getFirst();
+        ScreenplayVO screenplayVO = singleValueCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
+                () -> screenplayMapper.selectScreenplayWithStatsById(id),
+                ScreenplayVO::objWithStatsToVo);
+        if(userId != null) {
+            screenplayVO = screenplayStatisticsDomainService.getScreenplayStatistics(screenplayVO, userId);
+        }
+        return screenplayVO;
     }
 
     private QueryWrapper<Screenplay> getQueryWrapper(ScreenplayQueryRequest screenplayQueryRequest) {
@@ -135,7 +156,7 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
         Page<ScreenplayVO> resPage = valuePageCacheTemplate.valueQuery(screenplayQueryRequest, valueQueryBean,
                 () -> {
                     Page<ScreenplayWithStats> page = new Page<>(current, size);
-                    return screenplayMapper.selectScreenplayWithStats(page, screenplayQueryRequest);
+                    return screenplayMapper.selectScreenplayWithStatsPage(page, screenplayQueryRequest);
                 },
                 ScreenplayVO::listObjWithStatsToVo);
 
@@ -167,4 +188,107 @@ public class ScreenplayDomainServiceImpl extends ServiceImpl<ScreenplayMapper, S
         boolean result = this.updateById(screenplay);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
     }
+
+    @Override
+    public void canalHandleScreenplay(List<CanalHandleVO> canalHandleVoList) {
+        canalHandleVoList.forEach(canalHandleVo -> {
+            CanalEntry.EventType eventType = canalHandleVo.getEventType();
+            Screenplay screenplay = JSONUtil.toBean(canalHandleVo.getJsonDataStr(), Screenplay.class);
+            if (eventType == CanalEntry.EventType.DELETE || cacheManager.getEntry_DELETE_FLAG().equals(screenplay.getIsDelete())) {
+                canalDeleteHandle(screenplay);
+            }else if (eventType == CanalEntry.EventType.UPDATE) {
+                canalUpdateHandle(screenplay);
+            }
+        });
+    }
+
+    private void canalDeleteHandle(Screenplay screenplay) {
+        this.deleteHomeCache(screenplay);
+        this.deleteSingleCache(screenplay);
+    }
+
+    private void canalUpdateHandle(Screenplay screenplay) {
+        this.updateHomeCache(screenplay);
+        this.updateSingleCache(screenplay);
+    }
+
+    private void updateHomeCache(Screenplay screenplay) {
+        String keyHead = ScreenplayCacheConstant.SCREENPLAY_QUERY_CACHE_PREFIX;
+        Set<String> targetKeys = redisTemplate.keys(ScreenplayCacheConstant.buildRedisKey(keyHead + "*"));
+        ScreenplayVO newScreenplayVO = ScreenplayVO.objToVo(screenplay);
+        for (String targetKey : targetKeys) {
+            if(targetKey == null || targetKey.isEmpty()){
+                continue;
+            }
+            Page<ScreenplayVO> page = this.getScreenplayPage(targetKey);
+            boolean needUpdate = false;
+
+            for(ScreenplayVO screenplayVO : page.getRecords()){
+                if(screenplayVO.getId().equals(newScreenplayVO.getId())){
+                    this.updateSingleScreenplay(screenplayVO, newScreenplayVO);
+                    needUpdate = true;
+                }
+            }
+            if(needUpdate){
+                String cacheValue = JSONUtil.toJsonStr(page);
+                cacheManager.putValueToCache(targetKey.replace(CacheUtils.APP_NAME + ":", ""), cacheValue);
+            }
+        }
+    }
+
+    private void updateSingleCache(Screenplay screenplay) {
+        String cacheKey = ScreenplayCacheConstant.getScreenplayCacheKey(screenplay.getId().toString());
+        Object value = cacheManager.getValueCache(cacheKey);
+        if(value == null){
+            return;
+        }
+        ScreenplayVO newScreenplayVO = ScreenplayVO.objToVo(screenplay);
+        ScreenplayVO oldScreenplayVO = JSONUtil.toBean((String) value, ScreenplayVO.class);
+        this.updateSingleScreenplay(oldScreenplayVO, newScreenplayVO);
+        String cacheValue = JSONUtil.toJsonStr(oldScreenplayVO);
+        cacheManager.putValueToCache(cacheKey, cacheValue);
+    }
+
+    private void deleteHomeCache(Screenplay screenplay) {
+        String keyHead = ScreenplayCacheConstant.SCREENPLAY_QUERY_CACHE_PREFIX;
+        Set<String> targetKeys = redisTemplate.keys(ScreenplayCacheConstant.buildRedisKey(keyHead + "*"));
+        ScreenplayVO newScreenplayVO = ScreenplayVO.objToVo(screenplay);
+        for (String targetKey : targetKeys) {
+            if(targetKey == null || targetKey.isEmpty()){
+                continue;
+            }
+            Page<ScreenplayVO> page = this.getScreenplayPage(targetKey);
+            for(ScreenplayVO screenplayVO : page.getRecords()){
+                if(screenplayVO.getId().equals(newScreenplayVO.getId())){
+                    String k = targetKey.replace(CacheUtils.APP_NAME + ":", "");
+                    cacheManager.removeValueCache(k);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void deleteSingleCache(Screenplay screenplay) {
+        String cacheKey = ScreenplayCacheConstant.getScreenplayCacheKey(screenplay.getId().toString());
+        cacheManager.removeValueCache(cacheKey);
+    }
+
+    private Page<ScreenplayVO> getScreenplayPage(String targetKey){
+        Object value = cacheManager.getValueCache(targetKey);
+        return JSONUtil.toBean(
+                (String) value,
+                new TypeReference<>() {}, // 指定完整泛型结构
+                false // 是否忽略转换错误
+        );
+    }
+
+    private void updateSingleScreenplay(ScreenplayVO sourceScreenplayVO, ScreenplayVO newScreenplayVO) {
+        sourceScreenplayVO.setCategory(newScreenplayVO.getCategory());
+        sourceScreenplayVO.setName(newScreenplayVO.getName());
+        sourceScreenplayVO.setCover(newScreenplayVO.getCover());
+        sourceScreenplayVO.setIntroduction(newScreenplayVO.getIntroduction());
+        sourceScreenplayVO.setTags(newScreenplayVO.getTags());
+        sourceScreenplayVO.setPlotTree(newScreenplayVO.getPlotTree());
+    }
+
 }

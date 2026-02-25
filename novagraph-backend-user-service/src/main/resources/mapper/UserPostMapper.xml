@@ -22,22 +22,33 @@
         createTime,editTime,updateTime,isDelete
     </sql>
 
-    <select id="selectUserPostWithStatsPage" resultType="com.tech.novagraphbackendmodel.user.entity.UserPostWithStats">
+    <sql id="selectUserPostWithStatsSQL">
         SELECT
-        up.id,
-        up.userId,
-        up.content,
-        up.postType,
-        up.quotedId,
-        up.visibility,
-        up.editTime,
-        up.createTime,
-        up.updateTime,
-        upt.thumbCount
+            up.id,
+            up.userId,
+            up.content,
+            up.postType,
+            up.quotedId,
+            up.visibility,
+            up.editTime,
+            up.createTime,
+            up.updateTime,
+            upt.thumbCount
         FROM
-        user_post up
-        LEFT JOIN
-        user_post_statistics upt ON up.id = upt.postId
+            user_post up
+                LEFT JOIN
+            user_post_statistics upt ON up.id = upt.postId
+    </sql>
+
+    <select id="selectUserPostWithStatsById" resultType="com.tech.novagraphbackendmodel.user.entity.UserPostWithStats">
+        <where>
+            up.isDelete = 0
+            AND up.id = #{postId}
+        </where>
+    </select>
+
+    <select id="selectUserPostWithStatsPage" resultType="com.tech.novagraphbackendmodel.user.entity.UserPostWithStats">
+        <include refid="selectUserPostWithStatsSQL" />
         <where>
             up.isDelete = 0
             AND up.visibility = 1

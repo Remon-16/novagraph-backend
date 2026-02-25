@@ -1,6 +1,7 @@
 package com.tech.novagraphbackendgraphservice.application.screenplay.Impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendgraphservice.application.screenplay.ScreenplayApplicationService;
@@ -14,6 +15,8 @@ import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.graph.ScreenplayVO;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ScreenplayApplicationServiceImpl implements ScreenplayApplicationService {
@@ -32,8 +35,13 @@ public class ScreenplayApplicationServiceImpl implements ScreenplayApplicationSe
     }
 
     @Override
+    public ScreenplayVO queryScreenplayById(Long id, Long userId) {
+        return screenplayDomainService.queryScreenplayById(id, userId);
+    }
+
+    @Override
     public ScreenplayVO queryScreenplayById(Long id) {
-        return screenplayDomainService.queryScreenplayById(id);
+        return screenplayDomainService.queryScreenplayById(id, null);
     }
 
     @Override
@@ -54,5 +62,10 @@ public class ScreenplayApplicationServiceImpl implements ScreenplayApplicationSe
     @Override
     public void doScreenplayReview(ScreenplayReviewRequest screenplayReviewRequest, User loginUser) {
         screenplayDomainService.doScreenplayReview(screenplayReviewRequest, loginUser);
+    }
+
+    @Override
+    public void canalHandleScreenplay(List<CanalHandleVO> canalHandleVoList) {
+        screenplayDomainService.canalHandleScreenplay(canalHandleVoList);
     }
 }

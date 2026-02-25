@@ -228,6 +228,12 @@ public class UserFollowDomainServiceImpl extends ServiceImpl<UserFollowMapper, U
         }
     }
 
+    @Override
+    public List<UserFollow> getFollowerList(Long userId) {
+        QueryWrapper<UserFollow> followerQueryWrapper = this.getQueryWrapper(userId, FOLLOWER);
+        return this.list(followerQueryWrapper);
+    }
+
     private QueryWrapper<UserFollow> getQueryWrapper(Long userId, String queryType){
         ThrowUtils.throwIf(userId == null, ErrorCode.PARAMS_ERROR);
         ThrowUtils.throwIf(queryType == null, ErrorCode.PARAMS_ERROR);

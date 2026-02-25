@@ -1,10 +1,14 @@
 package com.tech.novagraphbackenduserservice.domain.user.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tech.novagraphbackendcommon.cache.CacheManager;
 import com.tech.novagraphbackendcommon.cache.SingleValueCacheTemplate;
 import com.tech.novagraphbackendcommon.cache.bean.ValueQueryBean;
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendcommon.exception.BusinessException;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
@@ -12,11 +16,13 @@ import com.tech.novagraphbackendcommon.utils.JwtUtils;
 import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.constant.UserCacheConstant;
 import com.tech.novagraphbackendmodel.user.entity.User;
+import com.tech.novagraphbackendmodel.user.entity.UserStatistics;
 import com.tech.novagraphbackendmodel.user.valueobject.UserRoleEnum;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
 import com.tech.novagraphbackendmodel.vo.user.UserVO;
 import com.tech.novagraphbackendserviceclient.GraphFeignClient;
 import com.tech.novagraphbackenduserservice.domain.user.repository.UserRepository;
+import com.tech.novagraphbackenduserservice.domain.user.repository.UserStatisticsRepository;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserDomainService;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserFavoriteDomainService;
 import com.tech.novagraphbackenduserservice.domain.user.service.UserFollowDomainService;
@@ -58,6 +64,12 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
     @Resource
     private UserFavoriteDomainService userFavoriteDomainService;
 
+    @Resource
+    private CacheManager cacheManager;
+
+    @Resource
+    private UserStatisticsRepository userStatisticsRepository;
+
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
         // 1. 判断输入
@@ -86,6 +98,9 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
         if (!saveResult) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
         }
+        UserStatistics userStatistics = new UserStatistics();
+        userStatistics.setUserId(user.getId());
+        userStatisticsRepository.save(userStatistics);
         return user.getId();
     }
 
@@ -137,9 +152,13 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
     public LoginUserVO getLoginUserVO(HttpServletRequest request) {
         User currentUser = getUserFromRequest(request);
         Long userId = currentUser.getId();
+        return this.getLoginUserVO(userId);
+    }
+
+    private LoginUserVO getLoginUserVO(Long userId){
         // 查完整信息
         ValueQueryBean valueQueryBean = new ValueQueryBean();
-        valueQueryBean.setCacheKey(UserCacheConstant.getUserInfoKey(userId));
+        valueQueryBean.setCacheKey(UserCacheConstant.getUserLoginInfoKey(userId));
         valueQueryBean.setVOClass(LoginUserVO.class);
 
         LoginUserVO loginUserVO =  singleValueCacheTemplate.valueQuery(userId, valueQueryBean,
@@ -239,4 +258,73 @@ public class UserDomainServiceImpl extends ServiceImpl<UserMapper, User>
                 UserVO::objToVo
                 );
     }
+
+    @Override
+    public void canalHandleUser(List<CanalHandleVO> canalHandleVoList) {
+        canalHandleVoList.forEach(canalHandleVo -> {
+            CanalEntry.EventType eventType = canalHandleVo.getEventType();
+            User user = JSONUtil.toBean(canalHandleVo.getJsonDataStr(), User.class);
+            if (eventType == CanalEntry.EventType.DELETE || cacheManager.getEntry_DELETE_FLAG().equals(user.getIsDelete())) {
+                canalDeleteHandle(user);
+            }else if (eventType == CanalEntry.EventType.UPDATE) {
+                canalUpdateHandle(user);
+            }else if (eventType == CanalEntry.EventType.INSERT) {
+                canalInsertHandle(user);
+            }
+        });
+    }
+
+    private void canalDeleteHandle(User user) {
+        String key = UserCacheConstant.getUserInfoKey(user.getId());
+        String loginKey = UserCacheConstant.getUserLoginInfoKey(user.getId());
+        cacheManager.removeValueCache(key);
+        cacheManager.removeValueCache(loginKey);
+    }
+
+    private void canalUpdateHandle(User user) {
+        String key = UserCacheConstant.getUserInfoKey(user.getId());
+        Object value = cacheManager.getValueCache(key);
+        if (value == null) {
+            return;
+        }
+        UserVO oldUser = JSONUtil.toBean(value.toString(), UserVO.class);
+        this.singleUserUpdate(oldUser, user);
+        String valueStr = JSONUtil.toJsonStr(oldUser);
+        cacheManager.putValueToCache(key, valueStr);
+
+        String loginKey = UserCacheConstant.getUserLoginInfoKey(user.getId());
+        Object valueLogin = cacheManager.getValueCache(loginKey);
+        if (valueLogin == null) {
+            return;
+        }
+        LoginUserVO oldLoginUser = JSONUtil.toBean(value.toString(), LoginUserVO.class);
+        this.singleUserUpdate(oldLoginUser, user);
+        String valueStrLogin = JSONUtil.toJsonStr(oldLoginUser);
+        cacheManager.putValueToCache(key, valueStrLogin);
+    }
+
+    private void canalInsertHandle(User user) {
+        String key = UserCacheConstant.getUserInfoKey(user.getId());
+        String loginKey = UserCacheConstant.getUserLoginInfoKey(user.getId());
+
+        UserVO userVO = this.getUserVOById(user.getId());
+        LoginUserVO loginUser = this.getLoginUserVO(user.getId());
+
+        cacheManager.putValueToCache(key, JSONUtil.toJsonStr(userVO));
+        cacheManager.putValueToCache(loginKey, JSONUtil.toJsonStr(loginUser));
+    }
+
+    private void singleUserUpdate(UserVO oldUser, User newUser) {
+        oldUser.setUserName(newUser.getUserName());
+        oldUser.setUserProfile(newUser.getUserProfile());
+        oldUser.setUserAvatar(newUser.getUserAvatar());
+    }
+
+    private void singleUserUpdate(LoginUserVO oldUser, User newUser) {
+        oldUser.setUserName(newUser.getUserName());
+        oldUser.setUserProfile(newUser.getUserProfile());
+        oldUser.setUserAvatar(newUser.getUserAvatar());
+    }
+
+
 }

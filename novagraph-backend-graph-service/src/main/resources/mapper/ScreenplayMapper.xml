@@ -30,26 +30,30 @@
         isDelete,visibility,reviewStatus,reviewMessage,reviewerId,reviewTime
     </sql>
 
-    <select id="selectScreenplayWithStats" resultType="com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats">
+    <sql id="selectScreenplayWithStats">
         SELECT
-        s.id,
-        s.name,
-        s.introduction,
-        s.category,
-        s.tags,
-        s.cover,
-        s.plotTree,
-        s.userId,
-        s.editTime,
-        s.createTime,
-        s.updateTime,
-        st.thumbCount,
-        st.favoriteCount,
-        st.playCount
+            s.id,
+            s.name,
+            s.introduction,
+            s.category,
+            s.tags,
+            s.cover,
+            s.plotTree,
+            s.userId,
+            s.editTime,
+            s.createTime,
+            s.updateTime,
+            st.thumbCount,
+            st.favoriteCount,
+            st.playCount
         FROM
-        screenplay s
-        LEFT JOIN
-        screenplay_statistics st ON s.id = st.screenplayId
+            screenplay s
+                LEFT JOIN
+            screenplay_statistics st ON s.id = st.screenplayId
+    </sql>
+
+    <select id="selectScreenplayWithStatsPage" resultType="com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats">
+        <include refid="selectScreenplayWithStats"/>
         <where>
             s.isDelete = 0
 
@@ -96,5 +100,14 @@
                 </choose>
             </if>
         </if>
+    </select>
+
+    <select id="selectScreenplayWithStatsById"
+            resultType="com.tech.novagraphbackendmodel.graph.entity.ScreenplayWithStats">
+        <include refid="selectScreenplayWithStats"/>
+        <where>
+            s.isDelete = 0
+            AND s.id = #{screenplayId}
+        </where>
     </select>
 </mapper>

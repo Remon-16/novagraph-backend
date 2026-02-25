@@ -67,7 +67,7 @@ public class ScreenplaySectionDomainServiceImpl extends ServiceImpl<ScreenplaySe
     public ScreenplayContentVO queryScreenplayContent(Long id) {
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR,
                 "id 为空");
-        ScreenplayVO screenplayVO = screenplayDomainService.queryScreenplayById(id);
+        ScreenplayVO screenplayVO = screenplayDomainService.queryScreenplayById(id, null);
         ScreenplayContentVO screenplayContentVO = new ScreenplayContentVO();
         BeanUtils.copyProperties(screenplayVO, screenplayContentVO);
         ScreenplaySectionQueryRequest screenplaySectionQueryRequest = new ScreenplaySectionQueryRequest();

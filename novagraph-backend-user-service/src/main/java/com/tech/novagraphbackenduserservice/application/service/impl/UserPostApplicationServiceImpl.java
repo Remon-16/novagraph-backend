@@ -1,6 +1,7 @@
 package com.tech.novagraphbackenduserservice.application.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendmodel.dto.user.UserPostAddRequest;
 import com.tech.novagraphbackendmodel.dto.user.UserPostQueryRequest;
 import com.tech.novagraphbackendmodel.user.entity.UserPost;
@@ -9,6 +10,8 @@ import com.tech.novagraphbackenduserservice.application.service.UserPostApplicat
 import com.tech.novagraphbackenduserservice.domain.user.service.UserPostDomainService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserPostApplicationServiceImpl implements UserPostApplicationService {
@@ -29,5 +32,10 @@ public class UserPostApplicationServiceImpl implements UserPostApplicationServic
     @Override
     public Page<UserPostVO> getUserPostVOPage(UserPostQueryRequest userPostQueryRequest) {
         return userPostDomainService.getUserPostVOPage(userPostQueryRequest);
+    }
+
+    @Override
+    public void canalHandleUserPost(List<CanalHandleVO> canalHandleVoList) {
+        userPostDomainService.canalHandleUserPost(canalHandleVoList);
     }
 }

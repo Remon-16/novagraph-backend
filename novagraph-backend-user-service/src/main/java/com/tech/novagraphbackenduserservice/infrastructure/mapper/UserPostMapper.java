@@ -17,6 +17,8 @@ import org.apache.ibatis.annotations.Param;
 public interface UserPostMapper extends BaseMapper<UserPost> {
     Page<UserPostWithStats> selectUserPostWithStatsPage(Page<UserPostWithStats> page,
                                                         @Param("request") UserPostQueryRequest request);
+
+    UserPostWithStats selectUserPostWithStatsById(@Param("postId") Long postId);
 }
 
 

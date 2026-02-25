@@ -1,5 +1,6 @@
 package com.tech.novagraphbackenduserservice.application.service;
 
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
 import com.tech.novagraphbackendmodel.user.entity.User;
 import com.tech.novagraphbackendmodel.vo.user.LoginUserVO;
@@ -62,4 +63,6 @@ public interface UserApplicationService {
      * @return
      */
     UserVO getUserVO(User user);
+
+    void canalHandleUser(List<CanalHandleVO> canalHandleVoList);
 }

@@ -1,5 +1,6 @@
 package com.tech.novagraphbackenduserservice.application.service.impl;
 
+import com.tech.novagraphbackendcommon.common.CanalHandleVO;
 import com.tech.novagraphbackendcommon.exception.ErrorCode;
 import com.tech.novagraphbackendcommon.exception.ThrowUtils;
 import com.tech.novagraphbackendmodel.dto.user.UserUpdateInfoRequest;
@@ -70,5 +71,10 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     @Override
     public UserVO getUserVO(User user) {
         return userDomainService.getUserVO(user);
+    }
+
+    @Override
+    public void canalHandleUser(List<CanalHandleVO> canalHandleVoList) {
+        userDomainService.canalHandleUser(canalHandleVoList);
     }
 }

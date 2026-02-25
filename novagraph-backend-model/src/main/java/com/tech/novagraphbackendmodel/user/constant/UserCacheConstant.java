@@ -8,6 +8,11 @@ public interface UserCacheConstant {
      */
     String USER_INFO_KEY_PREFIX = "user:";
 
+    /**
+     * 用户信息相关
+     */
+    String USER_LOGIN_INFO_KEY_PREFIX = "user:login:";
+
     /*
      * 用户收藏相关
      */
@@ -211,6 +216,10 @@ public interface UserCacheConstant {
      */
     static String getUserInfoKey(Long userId){
         return USER_INFO_KEY_PREFIX + userId;
+    }
+
+    static String getUserLoginInfoKey(Long userId){
+        return USER_LOGIN_INFO_KEY_PREFIX + userId;
     }
 
     /*
