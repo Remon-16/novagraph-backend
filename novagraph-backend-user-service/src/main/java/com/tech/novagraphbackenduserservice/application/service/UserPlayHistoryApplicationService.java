@@ -19,4 +19,6 @@ public interface UserPlayHistoryApplicationService {
     Page<UserPlayHistoryVO> getUserPlayHistory(UserPlayHistoryQueryRequest userPlayHistoryQueryRequest);
 
     Long getUserPlayHistoryCount(Long spId);
+
+    Long getUserPlayHistoryCountForLogin(Long userId);
 }

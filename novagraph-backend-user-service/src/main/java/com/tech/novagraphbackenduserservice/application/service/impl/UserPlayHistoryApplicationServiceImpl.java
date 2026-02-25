@@ -31,4 +31,9 @@ public class UserPlayHistoryApplicationServiceImpl implements UserPlayHistoryApp
     public Long getUserPlayHistoryCount(Long spId) {
         return userPlayHistoryDomainService.getUserPlayHistoryCount(spId);
     }
+
+    @Override
+    public Long getUserPlayHistoryCountForLogin(Long userId) {
+        return userPlayHistoryDomainService.getUserPlayHistoryCountForLogin(userId);
+    }
 }

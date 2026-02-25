@@ -57,4 +57,9 @@ public class UserFavoriteApplicationServiceImpl implements UserFavoriteApplicati
     public void putFavoriteListToCache(List<UserFavorite> userFavoriteList, Long userId) {
         userFavoriteDomainService.putFavoriteListToCache(userFavoriteList, userId);
     }
+
+    @Override
+    public Long getUserFavoriteCountForLogin(Long userId) {
+        return userFavoriteDomainService.getUserFavoriteCountForLogin(userId);
+    }
 }
